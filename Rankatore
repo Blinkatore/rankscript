@@ -1,0 +1,2466 @@
+// ==UserScript==
+// @name                    El rankatore
+// @namespace               http://tampermonkey.net/
+// @version                 v0.9b
+// @description             refix of voidzitos legendary putacode
+// @author                  Blink
+// @include                  http://*.barafranca.com/*
+// @include                  https://*.barafranca.com/*
+// @include                  http://barafranca.com/*
+// @include                  https://barafranca.com/*
+// @include                  http://*.barafranca.nl/*
+// @include                  https://*.barafranca.nl/*
+// @include                  http://barafranca.nl/*
+// @include                  https://barafranca.nl/*
+// @include                  http://*.barafranca.us/*
+// @include                  https://*.barafranca.us/*
+// @include                  http://barafranca.us/*
+// @include                  https://barafranca.us/*
+// @include                  http://*.barafranca.gen.tr/*
+// @include                  https://*.barafranca.gen.tr/*
+// @include                  http://barafranca.gen.tr/*
+// @include                  https://barafranca.gen.tr/*
+// @include                  http://omerta.com.tr/*
+// @include                  https://omerta.com.tr/*
+// @include                  http://*.omerta.com.tr/*
+// @include                  https://*.omerta.com.tr/*
+// @include                  http://*.omerta.dm/*
+// @include                  https://*.omerta.dm/*
+// @include                  http://omerta.dm/*
+// @include                  https://omerta.dm/*
+// @include                  http://*.omerta.pt/*
+// @include                  https://*.omerta.pt/*
+// @include                  http://omerta.pt/*
+// @include                  https://omerta.pt/*
+// @require                 https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js
+// @require                 https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js
+// @require                 https://greasyfork.org/scripts/28536-gm-config/code/GM_config.js?version=184529
+// @require                 https://cdnjs.cloudflare.com/ajax/libs/howler/2.0.4/howler.min.js
+// @require                 https://raw.githubusercontent.com/AdminAnticaptcha/anticaptcha-nodejs/master/anticaptcha.js
+// @grant                   unsafeWindow
+// @grant                   GM_getValue
+// @grant                   GM_setValue
+// @grant                   GM_log
+// @grant                   GM_xmlhttpRequest
+// @grant                   GM.xmlHttpRequest
+// @connect                 budgetsms.net
+// @connect                 self
+// @connect                 *
+// ==/UserScript==
+//SETTINGS MENU ---- INIT
+var apiFields = {
+    'captcha_api_key': {
+        'label': 'Insert your deacaptcher API key', // Appears next to field
+        'section': ['CAPTCHA Options'], // Appears above the field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Your deacaptcher api key here', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    /*  'proxy_use': {
+        'label': 'Use proxy for captcha ?', // Appears next to field
+        'section': ['Proxy Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'title': 'Use proxy for captcha ?', // Add a tooltip (hover over text)
+        'default': false // Default value if user doesn't change it
+      },
+      'proxy_ip': {
+        'label': 'Insert proxy IP (use 0 for your IP)', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Insert proxy IP (use 0 for your IP)', // Add a tooltip (hover over text)
+        'default': '0' // Default value if user doesn't change it
+      },
+      'proxy_port': {
+        'label': 'Insert proxy port', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Insert proxy port', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+      },
+      'proxy_login': {
+        'label': 'Insert proxy login', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Insert proxy login', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+      },
+      'proxy_pw': {
+        'label': 'Insert proxy password', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Insert proxy password', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+      },*/
+    'sms_username': {
+        'label': 'Insert your sms sender Username !', // Appears next to field
+        'section': ['SMS Options'], // Appears above the field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Your sms sender username here', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'sms_userid': {
+        'label': 'Insert your sms sender password', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Your sms sender password here', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'sms_number': {
+        'label': 'Insert your number here! (format: Countrycode+number Ex: 351958845699)', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Inser your number here!', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    }
+};
+var setFields = {
+    'crimes_cars': {
+        'label': 'Enable Crimes and Cars', // Appears next to field
+        'section': ['Ranking Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'booze_narcs': {
+        'label': 'Enable Booze & Narcs Mode', // Appears next to field
+        'type': 'radio', // Makes this setting a series of radio elements
+        'options': ['Money', 'RP', 'BOOST', 'Disabled'], // Possible choices
+        'default': 'Disabled' // Default value if user doesn't change it
+    },
+    'scratch': {
+        'label': 'Enable Fulltime Scratcher (not recommended during ranking, only lackeys)', // Appears next to field
+        'section': ['Scratcher Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'scratch_on_cooldown': {
+        'label': 'Enable Scratcher in between crimes!', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'min_sc': {
+        'label': 'Minimum amount of pocket cash for scratching', // Appears next to field
+        'type': 'int', // Makes this setting a text input
+        'min': 0, // Optional lower range limit
+        'max': 9999999, // Optional upper range limit
+        'default': 500000 // Default value if user doesn't change it
+    },
+    'send_message_scratch': {
+        'label': 'Send message if out of Scratch Money ?', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'bo': {
+        'label': 'Enable Bust-Outs', // Appears next to field
+        'section': ['Bust-Outs Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'bo_on_cooldown': {
+        'label': 'Enable Bust-Outs while on cooldown for other crimes!', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'bo_cooldown_time': {
+        'label': 'Timeout when jail is empty!', // Appears next to field
+        'type': 'int', // Makes this setting a text input
+        'min': 0, // Optional lower range limit
+        'max': 9999999, // Optional upper range limit
+        'default': 10 // Default value if user doesn't change it
+    },
+    'fianca': {
+        'label': 'Pay Out of jail ?', // Appears next to field
+        'section': ['Jail Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'min_bo': {
+        'label': 'Min Money on pocket to pay out of jail', // Appears next to field
+        'type': 'int', // Makes this setting a text input
+        'min': 0, // Optional lower range limit
+        'max': 9999999, // Optional upper range limit
+        'default': 50000 // Default value if user doesn't change it
+    },
+    'warning_captcha': {
+        'label': 'Only warn when captcha appears? IMPORTANT! IF SELECTED CAPTCHA WONT BE DONE AUTOMATICALLY', // Appears next to field
+        'section': ['Captcha Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'warning_captcha_sound': {
+        'label': 'Play sound when warning captcha ?', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'warning_captcha_sms': {
+        'label': 'Sens sms if captcha with image ?', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'check_message': {
+        'label': 'Check for being shoot while online?', // Appears next to field
+        'section': ['SMS / Misc Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'do_races': {
+        'label': 'Do races?', // Appears next to field
+        'section': ['Group Crimes / Races Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'race_friend': {
+        'label': 'Friend to invite for race', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Type your racer friend ingame', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'race_ask_chat': {
+        'label': 'Ask for race on chat? (This will take priority over inviting a friend!)', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'race_msg': {
+        'label': 'Message to send asking race', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Message to send asking race', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'do_heists': {
+        'label': 'Do Heists?', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'heists_friend': {
+        'label': 'Friend to invite for heist', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Type your heist friend ingame', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'heists_ask_chat': {
+        'label': 'Ask for heist on chat? (This will take priority over inviting a friend! so only select if you really want!)', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'heist_msg': {
+        'label': 'Message to send asking heist', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Message to send asking heist', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'do_raids': {
+        'label': 'Do Raids?', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'raids_friend': {
+        'label': 'Friend to invite for raid', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Type your raid friend ingame', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'raids_ask_chat': {
+        'label': 'Ask for Raids on chat? (This will take priority over inviting a friend! so only select if you really want!)', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'raids_msg': {
+        'label': 'Message to send asking raid', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Message to send asking raid', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'do_ocs': {
+        'label': 'Do Organised Crimes?', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'ocs_ask_chat': {
+        'label': 'Ask for Organised Crimes on chat?', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'ocs_msg': {
+        'label': 'Message to send asking oc', // Appears next to field
+        'type': 'text', // Makes this setting a text field
+        'title': 'Message to send asking oc', // Add a tooltip (hover over text)
+        'default': '' // Default value if user doesn't change it
+    },
+    'GC_city': {
+        'label': 'Choose which city (or all) to do Group Crimes !', // Appears next to field
+        'type': 'select', // Makes this setting a text input
+        'options': ['Any', 'Detroit', 'Chicago', 'Palermo', 'New York', 'Las Vegas', 'Philadelphia', 'Baltimore', 'Corleone'],
+    },
+    'milestone_check': {
+        'label': 'Check for milestones and accept them ?)', // Appears next to field
+        'section': ['Milestones Options'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'milestone_send_sms': {
+        'label': 'Send sms when milestone redeemed ? (Need sms credentials!)', // Appears next to field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': false // Default value if user doesn't change it
+    },
+    'warn_sc_off': {
+        'label': 'Warn if script off', // Appears next to field
+        'section': ['Warn'], // Appears above the field
+        'type': 'checkbox', // Makes this setting a text input
+        'default': true // Default value if user doesn't change it
+    }
+};
+
+function whatV(hostname) {
+    hostname = hostname || window.location.hostname;
+    if (/(.*).omerta.land$/.test(hostname)) {
+        return 'dev';
+    }
+    switch (hostname) {
+        case 'www.omerta3.com':
+        case 'omerta3.com':
+        case 'www.barafranca.com':
+        case 'barafranca.com':
+        case 'www.barafranca.us':
+        case 'barafranca.us':
+        case 'play.barafranca.com':
+            return 'com';
+        case 'omerta.dm':
+        case 'www.omerta.dm':
+            return 'dm';
+        case 'www.barafranca.nl':
+        case 'barafranca.nl':
+            return 'nl';
+        case 'www.omerta.com.tr':
+        case 'omerta.com.tr':
+            return 'tr';
+        case 'omerta.pt':
+        case 'www.omerta.pt':
+            return 'pt';
+        default:
+            return undefined;
+    }
+}
+
+var version = whatV();
+
+var infoPage = '/information.php';
+
+if (version != undefined) {
+    console.log("Version: " + version);
+    GM_config.init({
+        'id': version, // The id used for this instance of GM_config
+        'title': 'Configuration for version: ' + version,
+        'fields': setFields, // Fields object
+        'events': // Callback functions object
+            {
+                'save': function() {
+                    onSave();
+                }
+            }
+    });
+    var gmAPI = new GM_configStruct({
+        'id': 'APIoptions', // The id used for this instance of GM_config
+        'title': 'Configuration of Captcha/SMS API',
+        'fields': apiFields, // Fields object
+        'events': // Callback functions object
+            {
+                'save': function() {
+                    onSaveAPI();
+                }
+            }
+    });
+}
+
+// TIMEOUTS
+var infoTimeOut, scratch10, loopTIMER, scratchMAX, scratchGo, dAsync, gApiTO, doCaptchaTO, captchaErroTO1, captchaErroTO2, doCrimeTO, doCrimeTO2, doCarTO, doCarTO2, doBN1, doBN2, doBN3, loopTO3, loopTO2, loopTO4, captchaNotif, warn_sc_off_TO, loopTO5, loopTO6, loopTO7, loopTO8, loopTO9, loopTO10, loopTO11, loopMILE01, loopScratcher, warnCaptcha, travelGOTO, gotclicksTO1, travelTO, travelTO1, doRP0, doRP1, bnRPTO01, rpTO1, rpTO2, rpTO3, bnRPTO02, doSmug1, doSmug2, bnTO1, bnTO2, heistTO1, loopTO1, heistTO2, heistInviteTO, heistInviteTO2, heistTO6, heistTO3, heistTO6, heistTO4, heistTO5, heistTO6, heistTO7, heistTO8, mileTO1, mileTO2, mileTO3, menuTO;
+// CONFIG VARS
+var raspando = false;
+var doingCaptcha = false;
+var siteKey = "6Ldvw_4SAAAAALAn52hITD-mzh10oyGaef6-A3bf";
+// First Time Check
+var lcArrayStorage = ["Enabled", "StartButton", "heistChatMsg", "heistWaitTime", "raceChatMsg", "raceWaitTime", "raidChatMsg", "raidWaitTime", "ocWaitTime", "ocChatMsg", "captchaSMS"];
+lcArrayStorage.forEach(function(elem) {
+    if (localStorage.getItem(elem) === null) {
+        console.log(elem + ' = Null'); // first time runner
+        localStorage.setItem(elem, 0);
+    }
+});
+
+//LANG VARS
+var globalNow = ["Agora", "Nu", "Now"];
+var StartButton = localStorage.getItem("StartButton");
+var securityChk = (version == 'pt') ? ('Teste de Segurança') : ((version == 'nl') ? ('Veiligheidscontrole') : ('Security Check'));
+
+var mileToRedeem = (version == 'pt') ? ('You have a milestone to collect.') : ((version == 'nl') ? ('You have a milestone to collect.') : ('You have a milestone to collect.'));
+var mileCollect = (version == 'pt') ? ('COLLECT') : ((version == 'nl') ? ('COLLECT') : ('COLLECT'));
+
+var jailGo = (version == 'pt') ? ('GO FOR IT') : ((version == 'nl') ? ('GO FOR IT') : ('GO FOR IT'));
+var jailIn = (version == 'pt') ? ('Estás na cadeia pelos próximos') : ((version == 'nl') ? ('Je zit in de gevangenis voor de komende') : ('You are in jail for the next'));
+var jailTryOut = (version == 'pt') ? ('Tenta libertar-te.') : ((version == 'nl') ? ('Probeer jezelf uit te breken') : ('Try to bust yourself out.'));
+var jailNow = (version == 'pt') ? ('Now') : ((version == 'nl') ? ('Now') : ('Now'));
+var jailReleased = (version == 'pt') ? ('Foste liberto') : ((version == 'nl') ? ('Je bent uit de gevangenis bevrijd') : ('You have been released from jail'));
+var jailBought = (version == 'pt') ? ('Pagaste a fiança') : ((version == 'nl') ? ('Je hebt jezelf uitgekocht') : ('You bought yourself out'));
+
+var raceStart = (version == 'nl') ? ('Aqui podes começar Competições Automóveis') : ((version == 'nl') ? ('Je kan hier een race starten') : ('You can start a race with your car against someone else here!'));
+var raceInvites = (version == 'nl') ? ('Os teus convites') : ((version == 'nl') ? ('texto') : ('Your race invitations'));
+var raceAccept = (version == 'nl') ? ('Aceitar') : ((version == 'nl') ? ('Accepteren') : ('Accept'));
+var raceCar = (version == 'nl') ? ('Carro: ') : ((version == 'nl') ? ('Auto: ') : ('Car: '));
+var raceInvited = (version == 'nl') ? ('Invited') : ((version == 'nl') ? ('Invited') : ('Invited'));
+var raceAccepted = (version == 'nl') ? ('Accepted') : ((version == 'nl') ? ('Accepted') : ('Accepted'));
+var raceAllReady = (version == 'nl') ? ('Todos os pilotos estão prontos para arrancar') : ((version == 'nl') ? ('Alle racers zijn klaar voor de race') : ('All racers are ready for the race'));
+var raceTired = (version == 'nl') ? ('Ainda estás cansado da última Competição Automóvel') : ((version == 'nl') ? ('nog moe van je laatste race') : ('still tired from your last race'));
+
+var heistDesperate = (version == 'pt') ? ('Desesperados por algum dinheiro') : ((version == 'nl') ? ('Op zoek naar geld hebben') : ('Desperate for some cash'));
+var heistBuddyHot = (version == 'pt') ? ('O teu colega ainda está cansado do seu último Heist') : ((version == 'nl') ? ('De gangster waar jij mee wilt heisten moet nog bijkomen van zijn/haar vorige overval!') : ('Your buddy is still tired from his last heist'));
+var heistInvSent = (version == 'pt') ? ('O convite foi enviado para o teu colega') : ((version == 'nl') ? ('texto') : ('Invite is sent to your buddy, if he accepts you guys are ready to roll!'));
+var heistInvSent2 = (version == 'pt') ? ('Queres expulsá-lo pela atitude descontraída dele?') : ((version == 'nl') ? ('texto') : ('Wanna kick him out for his lazy behaviour?'));
+var heistWaitLeader = (version == 'pt') ? ('espera que o líder te dê o sinal verde') : ((version == 'nl') ? ('texto') : ('wait for your leader to give the green signal'));
+var heistHot = (version == 'pt') ? ('Ainda estás cansado do teu último Heist!') : ((version == 'nl') ? ('texto') : ('Take some rest and hit the road again'));
+var heistPutCar = (version == 'pt') ? ('Preenche o ID do teu carro em baixo') : ((version == 'nl') ? ('texto') : ('Fill in the ID of your car below and hit Ready!'));
+var heistPartnerIn = (version == 'pt') ? ('O teu parceiro no crime') : ((version == 'nl') ? ('Je partner in crime') : ('Your partner in crime'));
+var heistInvited = (version == 'pt') ? ('Tu foste convidado') : ((version == 'nl') ? ('Je bent uitgenodigd voor een heist') : ('You have been invited to a heist'));
+var heistAccept = (version == 'pt') ? ('Aceita') : ((version == 'nl') ? ('texto') : ('Accept'));
+
+var raidStart = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('Start raiding'));
+var raidWaitCar = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('Your driver hasnt accepted the invitation yet, be patient.'));
+var raidDriverReady = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('Your Driver has accepted the invited'));
+var raidStartUpdate = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('Start/Update Raid'));
+var raidAcceptInvite = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('Accept Invite'));
+var raidFailed = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('The raid failed'));
+var raidJoined = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('You have now joined this raid'));
+var raidAccepted = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('You have accepted this raid invite'));
+var raidLEM = (version == 'pt') ? ('LEM') : ((version == 'nl') ? ('LEM') : ('LEM'));
+
+var ocStart = (version == 'pt') ? ('Começar Crime Organizado') : ((version == 'nl') ? ('Start een Georganiseerde Misdaad') : ('Start an Organised Crime'));
+var ocInvite = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('texto') : ('Do you really want to be a part of the Organised Crime'));
+var ocPutIn = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('Zet in') : ('Put in'));
+var ocReady = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('Je bent nu klaar voor de') : ('You are now ready for the job'));
+var ocHot = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('Je bent nog steeds moe van je vorige') : ('You are still hot from your last Organised Crime'));
+var ocIn = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('je spullen verliezen!') : ('loose your stuff!'));
+
+var loggedOut = (version == 'pt') ? ('been logged out, since') : ((version == 'nl') ? ('been logged out, since') : ('been logged out, since'));
+
+var clickLimit = (version == 'pt') ? ('Chegaste ao teu limite de cliques.') : ((version == 'nl') ? ('Je hebt jouw kliklimiet bereikt.') : ('You reached your click limit.'));
+
+var travelCooldown = (version == 'pt') ? ('Podes viajar novamente em') : ((version == 'nl') ? ('Je kunt weer reizen over') : ('You will be able to travel again'));
+
+var scratchBuy = (version == 'pt') ? ('Podes comprar') : ((version == 'nl') ? ('Je kan hier een kraskaart kopen') : ('You can buy'));
+var scratch10min = (version == 'pt') ? ('Lamentamos, mas 10 por minuto é mais que suficiente') : ((version == 'nl') ? ('Sorry, maar 10 per minuut is meer dan genoeg.') : ('Sorry, but 10 per minute is enough.'));
+var scratchWin = (version == 'pt') ? ('Parabéns!') : ((version == 'nl') ? ('Gefeliciteerd!') : ('Congratulations!'));
+var scratchSorry = (version == 'pt') ? ('Desculpa amigo') : ((version == 'nl') ? ('Deze ID kaart is niet herkend') : ('Sorry mate'));
+var scratchStart = (version == 'pt') ? ('Começa a raspar') : ((version == 'nl') ? ('Start met krassen') : ('Start scratching'));
+var scratchTryAgain = (version == 'pt') ? ('texto') : ((version == 'nl') ? ('hier om opnieuw te proberen') : ('here to try again'));
+var scratchOOM = (version == 'pt') ? ('Seu escumalha!') : ((version == 'nl') ? ('Jij Dief! Proberen om onze kras kaarten te stelen!') : ('You tramp! Trying to steal our scratch cards!'));
+
+var ccSucc = (version == 'pt') ? ('Bem jogado!') : ((version == 'nl') ? ('Goed gedaan!') : ('WELL DONE!'));
+var ccFail = (version == 'pt') ? ('OOPS...!') : ((version == 'nl') ? ('POGING MISLUKT!') : ('ATTEMPT FAILED!'));
+var ccDone = (version == 'pt') ? ('Estás demasiado cansado') : ((version == 'nl') ? ('Te moe') : ('Too tired'));
+
+// Help Stacks
+var ranks = ['Empty-suit', 'Delivery Boy', 'Delivery Girl', 'Picciotto', 'Shoplifter', 'Pickpocket', 'Thief', 'Associate', 'Mobster', 'Soldier', 'Swindler', 'Assassin', 'Local Chief', 'Chief', 'Bruglione', 'Capodecina', 'Godfather', 'First Lady'];
+var cities = ['Detroit', 'Chicago', 'Palermo', 'New York', 'Las Vegas', 'Philadelphia', 'Baltimore', 'Corleone'];
+var maxBooze = [1, 2, 2, 5, 7, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 70, 70];
+var maxNarcs = [0, 0, 0, 1, 2, 4, 5, 7, 8, 10, 11, 13, 14, 16, 17, 20, 20, 20];
+var prevPrices = [];
+
+//CONTROL VARS
+var action;
+var SmuggleDone = false;
+var CanTravel = true;
+//Actualizar na hora as settings
+function onSave() {
+    console.log('Settings saved');
+    Enabled = localStorage.getItem("Enabled");
+    StartButton = localStorage.getItem("StartButton");
+    booze_narcs = GM_config.get('booze_narcs');
+    crimes_cars = GM_config.get('crimes_cars');
+    scratch = GM_config.get('scratch');
+    scratch_on_cooldown = GM_config.get('scratch_on_cooldown');
+    min_sc = GM_config.get('min_sc');
+    bos = GM_config.get('bo');
+    bo_on_cooldown = GM_config.get('bo_on_cooldown');
+    bo_cooldown_time = GM_config.get('bo_cooldown_time');
+    pagar_fianca = GM_config.get('fianca');
+    min_fianca = GM_config.get('min_bo');
+    do_races = GM_config.get('do_races');
+    do_heists = GM_config.get('do_heists');
+    do_raids = GM_config.get('do_raids');
+    heists_chat = GM_config.get('heists_ask_chat');
+    heists_friend = GM_config.get('heists_friend');
+    race_friend = GM_config.get('race_friend');
+    race_chat = GM_config.get('race_ask_chat');
+    raids_chat = GM_config.get('raids_ask_chat');
+    raids_friend = GM_config.get('raids_friend');
+    do_ocs = GM_config.get('do_ocs');
+    ocs_chat = GM_config.get('ocs_ask_chat');
+    GC_city = GM_config.get('GC_city');
+    race_msg = GM_config.get('race_msg');
+    heist_msg = GM_config.get('heist_msg');
+    raids_msg = GM_config.get('raids_msg');
+    ocs_msg = GM_config.get('ocs_msg');
+    send_message_scratch = GM_config.get('send_message_scratch');
+    warning_captcha = GM_config.get('warning_captcha');
+    warning_captcha_sound = GM_config.get('warning_captcha_sound');
+    warning_captcha_sms = GM_config.get('warning_captcha_sms');
+    milestone_check = GM_config.get('milestone_check');
+    milestone_send_sms = GM_config.get('milestone_send_sms');
+    warn_sc_off = GM_config.get('warn_sc_off');
+    warnScOFF();
+    $('#Critbody').html('Enabled:<font style="float:right;"><b>' + Enabled.toUpperCase() + '</b></font><hr />Car/Crimes:<font style="float:right;"><b>' + crimes_cars + '</b></font><br />SmartScratch:<font style="float:right;"><b>' + scratch_on_cooldown + '</b></font><br />Scratch ONLY:<font style="float:right;"><b>' + scratch + '</b></font><br />B/N:<font style="float:right;"><b>' + booze_narcs + '</b></font>');
+    //$('#Critbody').html('Enabled:<font style="float:right;"><b>' + Enabled + '</b></font><br />Car/Crimes:<font style="float:right;"><b>' + crimes_cars + '</b></font><br />Booze/Narcs:<font style="float:right;"><b>' + booze_narcs + '</b></font><br />Scratch:<font style="float:right;"><b>' + scratch + '</b></font><br />BustOuts:<font style="float:right;"><b>' + bos);
+    $('#Critstartstop').html(StartButton + ' SCRIPT').removeClass("START STOP").addClass(StartButton);
+
+}
+
+function onSaveAPI() {
+    console.log('API Settings saved');
+    captcha_api_key = gmAPI.get('captcha_api_key');
+    /*proxy_use = gmAPI.get('proxy_use');
+    proxy_login = gmAPI.get('proxy_login');
+    proxy_pw = gmAPI.get('proxy_pw');
+    proxy_ip = gmAPI.get('proxy_ip');
+    proxy_port = gmAPI.get('proxy_port');*/
+    sms_username = gmAPI.get('sms_username');
+    sms_userid = gmAPI.get('sms_userid');
+    sms_number = gmAPI.get('sms_number');
+}
+
+if (version != undefined) {
+    onSave();
+    onSaveAPI();
+}
+
+// HORA
+function getOmertaTime() {
+    if (typeof unsafeWindow.omerta.server.clock !== 'undefined') {
+        return unsafeWindow.omerta.server.clock.getTime();
+    }
+    if (typeof unsafeWindow.omerta.Clock !== 'undefined') {
+        return unsafeWindow.omerta.Clock.getTime();
+    }
+    return Date.now();
+}
+//Send notifications
+function notifyCrit(title, text, tag, URLicon) {
+    var notification = new Notification(title, {
+        dir: 'auto',
+        body: text,
+        icon: URLicon,
+        tag: tag
+    });
+    notification.onclick = function() {
+        parent.focus();
+        notification.close();
+    };
+    setTimeout(notification.close.bind(notification), 6800);
+}
+
+function playSound() {
+    var sound = new Howl({
+        src: ['https://d1oi19aitxwcck.cloudfront.net' + '/sounds/beep.mp3']
+    });
+    sound.play();
+}
+//Funcao get pageurl
+function getUrl() {
+    return (pageUrl = "https://" + (location.host) + "/");
+}
+//Funcao clearTimeouts
+function clearTO(id) {
+    if (typeof id !== 'undefined') {
+        clearTimeout(id);
+    }
+}
+//Função detectar pagina
+function on_page(str) {
+    if (window.location.hash.indexOf(str) != -1) {
+        return true;
+    }
+    return false;
+}
+
+function check_title(title) {
+    var pTitle = omerta.GUI.container.title();
+    if (pTitle.indexOf(title) !== -1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+//Função nr random entre (min) (max)
+function rnd(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function array_sum(array) {
+    return array.reduce(function(a, b) {
+        return (a + b);
+    });
+}
+// LOGOUT
+function logout() {
+    window.location = '/logout.php';
+}
+
+function gotLogout() {
+    if ($('div:contains(' + loggedOut + ')')) {
+        sendSMS("We got logout " + version);
+        location.reload();
+    }
+}
+
+function login() {
+    if ($('#loginbox').length === 1) {
+        $('input[type="submit"]').focus().click();
+    }
+}
+
+function checkIfDead() {
+    if (window.location.search.indexOf('action=omertician') != -1) {
+        sendSMS("We died " + version + ". RIP!");
+        localStorage.setItem('Enabled', "false");
+        localStorage.setItem('StartButton', "START");
+        logout();
+    }
+}
+
+function sendSMS(message) {
+    var mri = encodeURI(message);
+    GM_xmlhttpRequest({
+        method: "GET",
+        //url: "http://api.budgetsms.net/sendsms/?username=" + sms_username + "&userid=" + sms_userid + "&handle=" + sms_api_key + "&msg=" + message + "&from=CritSCRIPT&to=" + sms_number,
+        url: "https://api.smsglobal.com/http-api.php?action=sendsms&user=" + sms_username + "&password=" + sms_userid + "&from=CritSCRIPT&to=" + sms_number + "&text=" + mri,
+        onload: function(response) {
+            console.log(response.responseText);
+        }
+    });
+}
+
+/*function getCSolution() {
+  var sCache = localStorage.getItem('solutionCache');
+  var sCacheExpire = parseIng(localStorage.getItem('solutionExpireTime'));
+  if (sCacheExpire < parseInt(new Date().getTime()) && sCache != null) {
+    console.log("Have available solution!");
+    return sCache;
+  } else {
+    console.log("Dont have solution, waiting for one!");
+    cacheSolution();
+    var getSol = setInterval(function() {
+      var sCache = localStorage.getItem('solutionCache');
+      if (sCache != null) {
+        clearInterval(getSol);
+        return sCache;
+      } else {
+        console.log("Waiting for solution - 3 seconds Timeout!");
+      }
+    }, 3000);
+  }
+}*/
+
+/*function cacheSolution() {
+  //check if there's a solution available and if it's valid
+  if (getCache === false) {
+    var sCache = localStorage.getItem('solutionCache');
+    var sCacheExpire = parseInt(localStorage.getItem('solutionExpireTime'));
+    if (sCacheExpire < parseInt(new Date().getTime()) && sCache != null) {
+      var d = new Date(sCacheExpire);
+      console.log("Still have one cached until: " + d.toString());
+      return;
+    } else {
+      getCache = true;
+      var anticaptcha = new Anticaptcha(captcha_api_key);
+      anticaptcha.setWebsiteURL(window.location.origin);
+      anticaptcha.setWebsiteKey("6Ldvw_4SAAAAALAn52hITD-mzh10oyGaef6-A3bf");
+
+      //proxy access parameters
+      anticaptcha.setProxyType("http");
+      if (proxy_ip === '0') {
+        anticaptcha.setProxyAddress(myip);
+      } else {
+        anticaptcha.setProxyAddress(proxy_ip);
+      }
+      anticaptcha.setProxyPort(proxy_port);
+      anticaptcha.setProxyLogin(proxy_login);
+      anticaptcha.setProxyPassword(proxy_pw);
+
+      anticaptcha.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36");
+
+      anticaptcha.createTask(function(err, taskId) {
+        if (err) {
+          getCache = false;
+          return;
+          //send sms ?
+        }
+        console.log("taskId: " + taskId);
+        anticaptcha.getTaskSolution(taskId, function(err, taskSolution) {
+          if (err) {
+            getCache = false;
+            return;
+            //send sms
+          }
+          console.log("taskSolution Cached: " + taskSolution);
+          localStorage.setItem('solutionCache', taskSolution);
+          localStorage.setItem('soluetionExpireTime', (parseInt(new Date().getTime()) + 120000));
+          getCache = false;
+          return taskSolution;
+        });
+      });
+    }
+  } else {
+    console.log("Already in process of caching solution!");
+    return;
+  }
+}*/
+
+// Func detectar captcha
+function deCaptcha() {
+    if ((document.documentElement.textContent || document.documentElement.innerText).indexOf(securityChk) > -1 && warning_captcha === true) {
+        clearTO(scratch10);
+        clearTO(scratchGo);
+        clearTO(scratchMAX);
+        clearTO(loopTIMER);
+        clearTO(infoTimeOut);
+        if (typeof captchaNotif === "undefined") {
+            var e = document.getElementsByTagName("iframe");
+            for (i = 0; i < e.length; i++) {
+                if (e[i].src.indexOf("www.google.com/recaptcha/api2/bframe") != -1 && e[i].src.indexOf(siteKey) != -1) {
+                    if (!$(e[i]).is(":hidden") && !$(e[i]).parents().filter(function() {
+                        return this.style.visibility == "hidden"
+                    }).length) {
+                        console.log('Got Captcha - Sending warn notification!');
+                        if (warning_captcha_sms === true) {
+                            if ((parseInt(localStorage.getItem("captchaSMS")) + 150) < Math.round(new Date().getTime() / 1000)) {
+                                console.log('sending captcha sms');
+                                localStorage.setItem("ocChatMsg", Math.round(new Date().getTime() / 1000)); // Set time of last Message
+                                sendSMS('Have captcha!');
+                            }
+                        }
+                        notifyCrit('[Captcha Detected]', 'Have captcha on ' + version + ' !', 'captcha', 'https://www.google.com/recaptcha/intro/images/hero-recaptcha-invisible.gif');
+                        if (warning_captcha_sound === true) {
+                            playSound();
+                        }
+                        captchaNotif = setInterval(function() {
+                            notifyCrit('[Captcha Detected]', 'Have captcha on ' + version + ' !', 'captcha', 'https://www.google.com/recaptcha/intro/images/hero-recaptcha-invisible.gif');
+                            if (warning_captcha_sound === true) {
+                                playSound();
+                            }
+                        }, 15000);
+                        break;
+                    }
+                }
+            }
+        }
+        /*} else if ((document.documentElement.textContent || document.documentElement.innerText).indexOf('Security Check') > -1) {
+          console.log("Temos Captcha");
+          if (doingCaptcha === false) {
+            console.log("Doing Captcha");
+            doingCaptcha = true;
+            var sCache = localStorage.getItem('solutionCache');
+            var sCacheExpire = parseIng(localStorage.getItem('solutionExpireTime'));
+            if (parseInt(new Date().getTime()) < sCacheExpire && sCache != null) {
+              console.log("Have available solution!");
+              $(".g-recaptcha-response").innerHTML = sCache;
+              omerta.services.security.check(sCache);
+              doCaptchaTO = setTimeout(function() {
+                doingCaptcha = false;
+                loop();
+              }, 3000);
+            } else {
+              console.log("Dont have solution, waiting for one!");
+              cacheSolution();
+              var getSol = setInterval(function() {
+                var sCache = localStorage.getItem('solutionCache');
+                if (sCache != null) {
+                  clearInterval(getSol);
+                  console.log("Have available solution!");
+                  $(".g-recaptcha-response").innerHTML = sCache;
+                  omerta.services.security.check(sCache);
+                  doCaptchaTO = setTimeout(function() {
+                    doingCaptcha = false;
+                    loop();
+                  }, 3000);
+                } else {
+                  console.log("Waiting for solution - 3 seconds Timeout!");
+                }
+              }, 3000);
+            }
+          } else {
+            console.log("Temos captcha - Ja estamos a fazer!");
+          }
+          */
+        warnCaptcha = setTimeout(loop, 1000);
+    } else {
+        captchaNotif = clearInterval(captchaNotif);
+        doingCaptcha = false;
+        return false;
+    }
+}
+//Reload DIV quando fica stuck em mensagens de merda !
+function clks() {
+    var page = window.location.hash.substring(1);
+    $('#game_container').load(page);
+}
+
+function gotClicks() {
+    if ($('#game_container:contains(' + clickLimit + ')').length) { // CLICKS WAIT 10 SECS AND RELOAD DIV
+        gotclicksTO1 = setTimeout(function() {
+            clks();
+            loop();
+        }, 10000);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function startStop() {
+    var Enabled = localStorage.getItem('Enabled');
+    var StartButton = localStorage.getItem('StartButton');
+    warnScOFF();
+    captchaNotif = clearInterval(captchaNotif);
+    if (Enabled != "true") {
+        localStorage.setItem('Enabled', "true");
+        localStorage.setItem('StartButton', "STOP");
+        onSave();
+        Enabled = localStorage.getItem('Enabled');
+        StartButton = localStorage.getItem('StartButton');
+        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+        loop();
+    } else if (Enabled === "true") {
+        clearTO(infoTimeOut);
+        clearTO(scratch10);
+        clearTO(loopTIMER);
+        clearTO(scratchGo);
+        clearTO(scratchMAX);
+        clearTO(loopTO3);
+        clearTO(loopTO2);
+        clearTO(loopTO4);
+        clearTO(doCarTO);
+        clearTO(doCarTO2);
+        clearTO(doCrimeTO);
+        clearTO(doCrimeTO2);
+        clearTO(doBN1);
+        clearTO(loopTO6);
+        clearTO(loopTO7);
+        clearTO(loopTO8);
+        clearTO(loopTO9);
+        clearTO(loopTO10);
+        clearTO(loopTO11);
+        clearTO(loopMILE01);
+        clearTO(loopScratcher);
+        clearTO(warnCaptcha);
+        clearTO(travelGOTO);
+        clearTO(gotclicksTO1);
+        clearTO(travelTO);
+        clearTO(travelTO1);
+        clearTO(doRP0);
+        clearTO(loopTO1);
+        clearTO(heistTO2);
+        clearTO(mileTO1);
+        clearTO(mileTO2);
+        clearTO(mileTO3);
+        clearTO(menuTO);
+
+        localStorage.setItem('Enabled', "false");
+        localStorage.setItem('StartButton', "START");
+        onSave();
+        Enabled = localStorage.getItem('Enabled');
+        StartButton = localStorage.getItem('StartButton');
+        loop();
+    }
+}
+
+function start() {
+    var Enabled = localStorage.getItem('Enabled');
+    var StartButton = localStorage.getItem('StartButton');
+    localStorage.setItem('Enabled', "true");
+    localStorage.setItem('StartButton', "STOP");
+    onSave();
+    Enabled = localStorage.getItem('Enabled');
+    StartButton = localStorage.getItem('StartButton');
+    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+    loop();
+}
+
+function stop() {
+    clearTO(infoTimeOut);
+    clearTO(scratch10);
+    clearTO(scratchGo);
+    clearTO(scratchMAX);
+    clearTO(loopTIMER);
+    clearTO(loopTO3);
+    clearTO(loopTO2);
+    clearTO(loopTO4);
+    clearTO(doCarTO);
+    clearTO(doCarTO2);
+    clearTO(doCrimeTO);
+    clearTO(doCrimeTO2);
+    clearTO(doBN1);
+    clearTO(loopTO6);
+    clearTO(loopTO7);
+    clearTO(loopTO8);
+    clearTO(loopTO9);
+    clearTO(loopTO10);
+    clearTO(loopTO11);
+    clearTO(loopMILE01);
+    clearTO(loopScratcher);
+    clearTO(warnCaptcha);
+    clearTO(travelGOTO);
+    clearTO(gotclicksTO1);
+    clearTO(travelTO);
+    clearTO(travelTO1);
+    clearTO(doRP0);
+    clearTO(loopTO1);
+    clearTO(heistTO2);
+    clearTO(mileTO1);
+    clearTO(mileTO2);
+    clearTO(mileTO3);
+    clearTO(menuTO);
+    localStorage.setItem('Enabled', "false");
+    localStorage.setItem('StartButton', "START");
+    onSave();
+    Enabled = localStorage.getItem('Enabled');
+    StartButton = localStorage.getItem('StartButton');
+    loop();
+}
+
+function chkMessage() {
+    var check_message = GM_config.get('check_message');
+    if (check_message === true) {
+        msgSI = setInterval(function() {
+            console.log('Checking if got shot!');
+            var serviceData = unsafeWindow.omerta.services.account.data;
+            var lastShootID = localStorage.getItem('lastShootID');
+            if (serviceData.messages.inbox.length > 0) {
+                var totalMessages = 0;
+                $.each(serviceData.messages.inbox, function(i, val) {
+                    var id = parseInt(val.id, 10);
+                    msgText = serviceData.messages.inbox[i].msg;
+                    msgTitle = /*'New message from ' + serviceData.messages.inbox[i].frm + ': ' +*/ serviceData.messages.inbox[i].sbj;
+                    console.log(msgTitle);
+                    console.log(msgText);
+                    if (lastShootID != id && (msgTitle == "You've been shot!" || msgTitle == "Je bent beschoten!" || msgTitle == "Foste atacado!")) {
+                        sendSMS(msgText);
+                        localStorage.setItem('lastShootID', id);
+                    }
+                    totalMessages += 1;
+                });
+            }
+        }, 30000);
+    }
+}
+
+// NEW priceS
+function newPrices() {
+    setTimeout(function() {
+        console.log("BN Price Fetcher ON!");
+        $.get('//' + document.location.hostname + '/BeO/webroot/index.php?module=API&action=smuggling_prices', function(dom) {
+            function getPrice(drug, city) {
+                return dom.getElementsByTagName(drug)[city].textContent;
+            }
+
+            function refreshMarquee(h, m) {
+                h = (m >= 31 ? h + 1 : h);
+                m = (m >= 31 ? 1 : 31);
+                var marQd = new Date();
+                marQd.setHours(h);
+                marQd.setMinutes(m);
+                marQd.setSeconds(0);
+                marQd.setMilliseconds(0);
+                return (marQd.getTime() - getOmertaTime());
+            }
+
+            var p = [];
+            var q = [];
+            var pricesChanged = false;
+
+            for (var i = 0; i <= 7; i++) {
+                p[i] = getPrice('cocaine', i);
+                q[i] = p[i];
+                if ((prevPrices === undefined || prevPrices[i] === undefined) || prevPrices[i] != p[i]) {
+                    pricesChanged = true;
+                }
+            }
+
+            if (pricesChanged) {
+                prevPrices = JSON.parse(JSON.stringify(q));
+            } else {
+                console.log("Waiting new prices!");
+                setTimeout(newPrices, 30000);
+                return;
+            }
+
+            // NEW PRICES
+            highPriceNarcs = 0;
+            lowPriceNarcs = 99999;
+            highPriceBooze = 0;
+            lowPriceBooze = 99999;
+            highCity = -1;
+            lowCity = -1;
+
+            /*var possessions = unsafeWindow.omerta.modules.UserInformation.data.possessions;
+            if (possessions) {
+                $.each(possessions, function(i) {
+                    if (possessions[i].type == 'plane') {
+                        ride = possessions[i].name_owned;
+                    }
+                });
+            }
+            var rides = ['none', 'geen', 'Fokker DR-1', 'Havilland DH 82A', 'Fleet 7', 'Douglas DC-3'];
+            for (var plane = 0, i = 0; i <= 5; i++) {
+                if (rides[i] == ride) {
+                    plane = i;
+                    break;
+                }
+            }*/
+
+            for (i = 0; i <= 7; i++) {
+                var tempPriceNarc = parseInt(dom.getElementsByTagName('cocaïne')[i].textContent, 10);
+                var tempPriceBooze = parseInt(dom.getElementsByTagName('rum')[i].textContent, 10);
+                //if( plane != 0 && (i != 2 || i != 7 )){
+                //high
+                highPriceNarcs = Math.max(highPriceNarcs, tempPriceNarc);
+                if (highPriceNarcs == tempPriceNarc) {
+                    highCity = i;
+                    highPriceBooze = tempPriceBooze;
+                }
+                //low
+                lowPriceNarcs = Math.min(lowPriceNarcs, tempPriceNarc);
+                if (lowPriceNarcs == tempPriceNarc) {
+                    lowCity = i;
+                    lowPriceBooze = tempPriceBooze;
+                }
+                //}
+            }
+            console.log("High City is: " + cities[highCity] + " - Coke: " + highPriceNarcs + " - Rum: " + highPriceBooze);
+            console.log("Low City is: " + cities[lowCity] + " - Coke: " + lowPriceNarcs + " - Rum: " + lowPriceBooze);
+
+            //SET FOR NEXT 30MINS !
+            setTimeout(newPrices, refreshMarquee(new Date().getHours(), new Date().getMinutes()));
+        });
+    });
+}
+
+function travel(id, callback) {
+    unsafeWindow.omerta.GUI.container.loadPage('/?module=Travel&action=FetchInfo&CityId=' + id);
+    travelGOTO = setTimeout(function() {
+        if ($('#game_container:contains(' + travelCooldown + ')').length) { // We cant travel!
+            CanTravel = false;
+            callback();
+        } else {
+            travelTO = setTimeout(function() {
+                $('input[type=submit]').removeAttr("data-confirm");
+                $('input[type=submit]').focus().click();
+                canTravel = false;
+                travelTO1 = setTimeout(callback, 2000);
+            }, 2000);
+        }
+    }, 2000);
+}
+//Press Funcs
+function pressSCRT() {
+    if (raspando === false) {
+        raspando = true;
+        if ((document.documentElement.textContent || document.documentElement.innerText).indexOf(securityChk) > -1) {
+            console.log("Raspa - Tem captcha");
+            raspando = false;
+        } else if ($('#game_container:contains(' + scratchBuy + ')').length) {
+            if ($('input[name="codescratch"]').length) { // focus on unclaimed prices
+                $('input[type="submit"]:eq(1)').focus().click(); // clikar unclaimed prizes
+            } else { // focus on scratch
+                $('input[name="scratch"]').focus().click();
+            }
+        } else if ($('#game_container:contains(' + scratchWin + ')').length) { // won something
+            $('input[name="scratch"]').focus().click();
+        } else if ($('#game_container:contains(' + scratchSorry + ')').length) { // no prize
+            $('input[name="scratch"]').focus().click();
+        } else if ($('#game_container:contains(' + scratchStart + ')').length) { // Pagina inicio
+            if ($('input[name="Check"]').length) {
+                $('input[name="Check"]').focus().click();
+            } else {
+                $('input[type="submit"]').focus().click();
+            }
+        } else if ($('#game_container:contains(' + scratchTryAgain + ')').length) {
+            console.log("Demos reload ou click com captcha! SHIT");
+            if ((document.documentElement.textContent || document.documentElement.innerText).indexOf(securityChk) > -1) {
+                console.log("Ainda tem captcha");
+                raspando = false;
+                return;
+            } else {
+                console.log("Shit page !");
+                if (scratch_on_cooldown === true) {
+                    raspando = false;
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                } else {
+                    raspando = false;
+                    unsafeWindow.omerta.GUI.container.loadPage('/scratch.php');
+                }
+
+            }
+        } else if ($('#game_container:contains(' + scratchOOM + ')').length) {
+            raspando = false; // no money go logout
+            console.log("Tamos sem $, dammm :( ");
+        }
+        raspando = false;
+    } else {
+        console.log("Já a raspar");
+    }
+}
+//JAIL
+function inJail() {
+    var pocketMoney = omerta.services.account.data.money;
+    if ($('#game_container:contains(' + jailIn + ')').length) {
+        if ($('#game_container:contains(' + jailTryOut + ')').length) {
+            $('input[type=submit]:eq(1)').focus().click();
+        } else if (pagar_fianca === true && pocketMoney > min_fianca) {
+            $('input[name="buymeout"]').focus().click();
+            clks();
+            return false;
+        } else if ($('#game_container:contains(' + jailNow + ')').length) {
+            clks();
+            return false;
+        } else {
+            return true;
+        }
+    } else {
+        return false;
+    }
+}
+//BOBOS - money left
+function bobos() {
+    var pocketMoney = omerta.services.account.data.money;
+    if (deCaptcha() === false) {
+        if ($('#game_container:contains(' + jailGo + ')').length) {
+            $('input[type="submit"]').focus().click();
+        } else if ($('#game_container:contains(' + jailIn + ')').length) {
+            if ($('#game_container:contains(' + jailTryOut + ')').length) {
+                $('input[type=submit]:eq(1)').focus().click();
+            } else if (pagar_fianca === true && pocketMoney > min_fianca) {
+                $('input[name="buymeout"]').focus().click();
+            } else if ($('#game_container:contains(' + jailNow + ')').length) {
+                clks();
+            }
+        } else if ($('#game_container:contains(' + jailReleased + ')').length) {
+            clks();
+        } else if ($('#game_container:contains(' + jailBought + ')').length) {
+            console.log("falhei tirarme 3x paguei fiança");
+            clks();
+        }
+    }
+}
+//-------------------------------------------------------------------------
+// ------------------------ Funções de ranking ----------------------------
+function crimeAtpt() {
+    unsafeWindow.omerta.GUI.container.loadPage('/?module=Crimes');
+    if (deCaptcha() === false) {
+        doCrimeTO = setTimeout(function() {
+            console.log('Doing Crime!');
+            $("#crime-chance5").click();
+            doCrimeTO2 = setTimeout(loop, 1000);
+        }, 200);
+    }
+}
+
+function carN() {
+    unsafeWindow.omerta.GUI.container.loadPage('/?module=Cars');
+    if (deCaptcha() === false) {
+        doCarTO = setTimeout(function() {
+            var bestChance = 0;
+            var choice = 3;
+            $('#nick-car-choices .head h4').each(function(i) {
+                if (parseInt($(this).text().replace('%', ''), 10) > bestChance) {
+                    bestChance = parseInt($(this).text().replace('%', ''), 10);
+                    choice = i;
+                }
+            });
+            $('#nick-car-choices .popup-place-wrapper:eq(' + choice + ')').addClass('active');
+            $('#nick-car-choices button:eq(' + choice + ')').focus().click();
+            doCarTO2 = setTimeout(loop, 1000);
+        }, 200);
+    }
+}
+
+function bnRP() { // TO MAKE IT BETTER !
+    if (Enabled == "true") {
+        if (!on_page('/smuggling.php')) {
+            unsafeWindow.omerta.GUI.container.loadPage('/smuggling.php');
+        }
+        doRP0 = setTimeout(function() {
+            if (check_title("Smuggling") === true) {
+                if (deCaptcha() === false) {
+                    if (inJail() === false) {
+                        if (!gotClicks()) {
+                            doRP1 = setTimeout(function() {
+                                //Check if lackeys on
+                                if ($('#game_container').html().match('/orourke.jpg') !== null || $('#game_container').html().match('/freekowski.jpg') !== null) {
+                                    console.log("BN Lackeys on!");
+                                    GM_config.set('booze_narcs', "Disabled");
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                }
+                                console.log('Doing RP Booze/Narc Buy!');
+                                var MyCity = unsafeWindow.omerta.character.game.city();
+                                for (i = 0; i < 8; i++) {
+                                    if (MyCity == cities[i]) {
+                                        MyCity = i;
+                                        break;
+                                    }
+                                }
+                                //Check what we carry!
+                                var inputs = $('input');
+                                var bn_xp = '.smuggling-header';
+                                if ($(bn_xp).html() != undefined) {
+                                    var bn_text = $(bn_xp).html().split('|');
+                                } else {
+                                    console.log("cant get bn_xp - try again");
+                                    bnRPTO01 = setTimeout(bnRP, 2000);
+                                }
+
+                                var cash = parseInt(bn_text[0].replace(/[^0-9.]/g, ''), 10);
+                                var booze = parseInt(bn_text[1].replace(/[^0-9.]/g, ''), 10); // max amount user can carry
+                                var narcs = parseInt(bn_text[2].replace(/[^0-9.]/g, ''), 10);
+
+                                var b_amount = [0, 0, 0, 0, 0, 0];
+                                var n_amount = [0, 0, 0, 0, 0, 0];
+
+                                var xpb = 'table.thinline > tbody > tr:eq(';
+                                var xpn = 'table.thinline:eq(1) > tbody > tr:eq(';
+
+                                for (var i = 0; i <= 13; i++) {
+                                    if (i < 7) { // booze
+                                        var x = i + 3;
+                                        b_amount[i] = parseInt($(xpb + x + ') > td:eq(2)').html(), 10);
+                                    }
+
+                                    if (i > 6) {
+                                        var x = i - 4;
+                                        n_amount[(i - 7)] = parseInt($(xpn + x + ') > td:eq(2)').html(), 10); // define how much of this item is being carried
+                                    }
+
+                                }
+                                var totalB = array_sum(b_amount);
+                                var totalN = array_sum(n_amount);
+                                var missingB = booze - totalB;
+                                var missingN = narcs - totalN;
+
+                                //Need to sell whatever i'm holding!
+                                if (parseInt(totalB, 10) !== 0 || parseInt(totalN, 10) !== 0) {
+                                    var sorts = ['wine', 'cognac', 'whiskey', 'amaretto', 'beer', 'port', 'rum', 'morphine', 'heroin', 'opium', 'cocaine', 'marihuana', 'tabacco', 'glue'];
+                                    for (i = 0; i <= 13; i++) {
+                                        var box = $('input[name="' + sorts[i] + '"]');
+                                        if (i < 7) {
+                                            box.val(b_amount[i]);
+                                        } else {
+                                            box.val(n_amount[i - 7]);
+                                        }
+                                    }
+                                    $('input[name="typebooze"]:eq(0)').prop('checked', true); // sell
+                                    $('input[name="typedrugs"]:eq(0)').prop('checked', true); // sell
+                                    var rpTO1 = setTimeout(function() {
+                                        $('input[type=submit]').focus().click();
+                                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                        loop();
+                                    }, 2000);
+                                } else if ($('.smuggling-table-info:eq(0)').text().match(/NOW|NU|drank te|booze is(\s+)$/m) || $('.smuggling-table-info:eq(1)').text().match(/NOW|NU|drugs te|narcotics is(\s+)$/m)) { // have BN to buy for RP !
+                                    if ($('.smuggling-table-info:eq(0)').text().match(/NOW|NU|drank te|booze is(\s+)$/m)) // booze RP
+                                    {
+                                        $('input[name="beer"]').val(booze);
+                                        $('input[name="typebooze"]:eq(1)').prop('checked', true); // buy
+                                    }
+                                    if ($('.smuggling-table-info:eq(1)').text().match(/NOW|NU|drugs te|narcotics is(\s+)$/m)) // narcs RP
+                                    {
+                                        $('input[name="glue"]').val(narcs);
+                                        $('input[name="typedrugs"]:eq(1)').prop('checked', true); // buy
+                                    }
+                                    var rpTO2 = setTimeout(function() {
+                                        $('input[type=submit]').focus().click();
+                                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                        loop();
+                                    }, 2000);
+                                } else { // Means we have no RP to gain!
+                                    rpTO3 = setTimeout(function() {
+                                        if (deCaptcha() === false) {
+                                            unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                            loop();
+                                        }
+                                    }, 2000);
+                                }
+                            }, 2000);
+                        }
+                    } else if (inJail() === true) {
+                        var bnRPTO02 = setTimeout(function() {
+                            unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                            loop();
+                        }, 5000);
+                    }
+                }
+            } else {
+                clks();
+                bnRP();
+            }
+        }, 2000);
+    }
+}
+
+function BoozeNarcRun() {
+    if (Enabled == "true") {
+        if (!on_page('/smuggling.php')) {
+            unsafeWindow.omerta.GUI.container.loadPage('/smuggling.php');
+        }
+        doSmug1 = setTimeout(function() {
+            if (check_title("Smuggling") === true) {
+                if (deCaptcha() === false) {
+                    if (inJail() === false) {
+                        doSmug2 = setTimeout(function() {
+                            //Check if lackeys on
+                            if ($('#game_container').html().match('/orourke.jpg') !== null || $('#game_container').html().match('/freekowski.jpg') !== null) {
+                                console.log("BN Lackeys on!");
+                                GM_config.set('booze_narcs', "Disabled");
+                                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                loop();
+                            }
+                            SmuggleDone = false;
+                            console.log('Doing booze or narc money run!');
+                            var MyCity = unsafeWindow.omerta.character.game.city();
+                            for (i = 0; i < 8; i++) {
+                                if (MyCity == cities[i]) {
+                                    MyCity = i;
+                                    break;
+                                }
+                            }
+
+                            //Check what we carry!
+                            var inputs = $('input');
+                            var bn_xp = '.smuggling-header';
+                            var bn_text = $(bn_xp).html().split('|');
+
+                            var cash = parseInt(bn_text[0].replace(/[^0-9.]/g, ''), 10);
+                            var booze = parseInt(bn_text[1].replace(/[^0-9.]/g, ''), 10); // max amount user can carry
+                            var narcs = parseInt(bn_text[2].replace(/[^0-9.]/g, ''), 10);
+                            var b_amount = [0, 0, 0, 0, 0, 0];
+                            var n_amount = [0, 0, 0, 0, 0, 0];
+
+                            var xpb = 'table.thinline > tbody > tr:eq(';
+                            var xpn = 'table.thinline:eq(1) > tbody > tr:eq(';
+
+                            for (var i = 0; i <= 13; i++) {
+                                if (i < 7) { // booze
+                                    var x = i + 3;
+                                    b_amount[i] = parseInt($(xpb + x + ') > td:eq(2)').html(), 10);
+                                }
+
+                                if (i > 6) {
+                                    var x = i - 4;
+                                    n_amount[(i - 7)] = parseInt($(xpn + x + ') > td:eq(2)').html(), 10); // define how much of this item is being carried
+                                }
+
+                            }
+                            var totalB = array_sum(b_amount);
+                            var totalN = array_sum(n_amount);
+                            var missingB = booze - totalB;
+                            var missingN = narcs - totalN;
+
+                            console.log("I'm in city: " + cities[MyCity] + " | Booze: " + totalB + " Narcs: " + totalN);
+
+                            if (parseInt(missingB, 10) === parseInt(booze, 10) || parseInt(missingN, 10) === parseInt(narcs, 10)) { //I'm EMPTY
+                                if (parseInt(MyCity, 10) === parseInt(lowCity, 10)) { //We are in low city, go buy
+                                    console.log("Buying in " + cities[MyCity]);
+                                    if (missingB === booze) {
+                                        $('input[name="rum"]').val(booze);
+                                    }
+                                    if (missingN === narcs) {
+                                        $('input[name="cocaine"]').val(narcs);
+                                    }
+                                    $('input[name="typebooze"]:eq(1)').prop('checked', true); // buy
+                                    $('input[name="typedrugs"]:eq(1)').prop('checked', true); // buy
+                                    var bnTO1 = setTimeout(function() {
+                                        $('input[type=submit]').focus().click();
+                                        BoozeNarcRun();
+                                    }, 2000);
+                                } else if (parseInt(MyCity, 10) === parseInt(highCity, 10) && CanTravel === false && missingB === booze && missingN === narcs) { // We are in high city without BN and cant travel to buy! DONE!
+                                    console.log("We are in high city without BN, cant travel. We are done!");
+                                    SmuggleDone = true;
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                } else if (CanTravel === true) { // need to travel
+                                    console.log("We need to buy, traveling to " + cities[lowCity]);
+                                    travel(lowCity, BoozeNarcRun);
+                                }
+                            }
+                            if (missingB === 0 || missingN === 0) { // I'm full
+                                if (parseInt(MyCity, 10) === parseInt(highCity, 10)) { // Need to sell
+                                    console.log("Selling in " + cities[MyCity]);
+                                    var sorts = ['wine', 'cognac', 'whiskey', 'amaretto', 'beer', 'port', 'rum', 'morphine', 'heroin', 'opium', 'cocaine', 'marihuana', 'tabacco', 'glue'];
+                                    for (i = 0; i <= 13; i++) {
+                                        var box = $('input[name="' + sorts[i] + '"]');
+                                        if (i < 7) {
+                                            box.val(b_amount[i]);
+                                        } else {
+                                            box.val(n_amount[i - 7]);
+                                        }
+                                    }
+                                    $('input[name="typebooze"]:eq(0)').prop('checked', true); // sell
+                                    $('input[name="typedrugs"]:eq(0)').prop('checked', true); // sell
+                                    var bnTO2 = setTimeout(function() {
+                                        $('input[type=submit]').focus().click();
+                                        BoozeNarcRun();
+                                    }, 2000);
+                                } else if (parseInt(MyCity, 10) === parseInt(lowCity, 10) && CanTravel === false && missingB === 0 && missingN === 0) { // We are in low city with BN and we cant travel to sell ! DONE
+                                    console.log("We are in low city with BN and cant travel, we already bought!");
+                                    SmuggleDone = true;
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                } else if (CanTravel === true) { // need to travel to high city
+                                    console.log("We need to sell, traveling to " + cities[highCity]);
+                                    travel(highCity, BoozeNarcRun);
+                                }
+                            }
+                            if ((missingB < booze && missingB != 0) || (missingN < narcs && missingN != 0)) { // Good heist or incomplete amounts. just sell all and rebuy !
+                                console.log("Good heist or incomplete amounts. just sell all and rebuy !");
+                                var sorts = ['wine', 'cognac', 'whiskey', 'amaretto', 'beer', 'port', 'rum', 'morphine', 'heroin', 'opium', 'cocaine', 'marihuana', 'tabacco', 'glue'];
+                                for (i = 0; i <= 13; i++) {
+                                    var box = $('input[name="' + sorts[i] + '"]');
+                                    if (i < 7) {
+                                        box.val(b_amount[i]);
+                                    } else {
+                                        box.val(n_amount[i - 7]);
+                                    }
+                                }
+                                $('input[name="typebooze"]:eq(0)').prop('checked', true); // sell
+                                $('input[name="typedrugs"]:eq(0)').prop('checked', true); // sell
+                                var bnTO1 = setTimeout(function() {
+                                    $('input[type=submit]').focus().click();
+                                    BoozeNarcRun();
+                                }, 2000);
+                            }
+                            if (CanTravel === false && (MyCity != highCity && MyCity != lowCity)) { // We cant travel and our city is good for nothing
+                                console.log("We cant travel and our city is good for nothing");
+                                SmuggleDone = true;
+                                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                loop();
+                            }
+                        }, 2000);
+                    }
+                }
+            } else {
+                clks();
+                BoozeNarcRun();
+            }
+        }, 2000);
+    }
+}
+
+function doRace() {
+    unsafeWindow.omerta.GUI.container.loadPage('/races.php');
+    if (deCaptcha() === false) {
+        console.log('Race page');
+        raceTO1 = setTimeout(function() {
+            $('div[style="display: none;"]').remove();
+            if ($('#game_container:contains("You reached your click limit.")').length) { // CLICKS WAIT 10 SECS AND RELOAD DIV
+                console.log("Clicks - 10secs tentar de novo");
+                loopTO1 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage('/races.php');
+                    loop();
+                }, 10000);
+            } else if ($('#game_container:contains("You can start a race with your car against someone else here!")').length && race_chat === true) { // Not invited for race! - Ask for race in chat mode
+                if (parseInt(localStorage.getItem("raceChatMsg")) + (30 * 1) < Math.round(new Date().getTime() / 1000)) {
+                    if ($('#omerta_sidepanel_toggle').attr('class') == 'open') {
+                        omerta_sidepanel_toggle.click();
+                        console.log('chat open');
+                    }
+                    console.log('asking for race in chat');
+                    $.post(getUrl() + "?module=Chat&action=send", {
+                        room: "omerta.orgcrime",
+                        message: race_msg
+                    });
+                    localStorage.setItem("raceChatMsg", Math.round(new Date().getTime() / 1000)); // Set time of last Message
+                    localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                } else {
+                    console.log("Race message sent less than 30secs ago");
+                    localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                }
+                raceTO2 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2500);
+            } else if ( $('#game_container:contains("You can start a race with your car against someone else here!")').length && race_friend !== "" ) { // Not invited for race! - Invite friend mode
+                console.log('Will invite for race');
+                //$('input[name="option"][value="3"]').prop('checked', true);
+                //$("select[name=num_racers] option[value=2]").prop('selected', true);
+                //$('select:eq(1)>option:eq(1)').prop('selected', true);
+                raceTO3 = setTimeout(function() {
+                    $('input[type="submit"]').focus().click();
+                    raceTO4 = setTimeout(function() {
+                        console.log('Inviting: ' + race_friend + ' for race');
+                        $('input[type=text]').val(race_friend);
+                        raceTO5 = setTimeout(function() {
+                            $('input[type=submit]:eq(0)').focus().click();
+                            localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 10));
+                            unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                            loop();
+                        }, 1000);
+                    }, 2000);
+                }, 2000);
+            } else if ($('#game_container:contains("Your race invitations")').length) { // Invited for race just accept!
+                console.log('Have invites for race!');
+                $("a:contains('Accept')")[0].click();
+                console.log('Accepted first race');
+                raceTO6 = setTimeout(function() {
+                    if ($('#game_container:contains("Car: ")').length) { // Select car for race
+                        //$('select>option:eq(1)').prop('selected', true); // random car
+                        console.log('Selected random car');
+                        $('input[type="submit"]').focus().click();
+                        localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                        raceTO13 = setTimeout(function() {
+                            unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                            loop();
+                        }, 2500);
+                    }
+                }, 2000);
+            } else if ( $('#game_container:contains("Car: ")').length && !$('#game_container:contains("You can start a race")').length) { // Select car for race
+                //$('select>option:eq(1)').prop('selected', true); // random car
+                console.log('Selected random car');
+                $('input[type="submit"]').focus().click();
+                localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                raceTO13 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2500);
+            } else if ($('#game_container:contains("Invited")').length) {
+                console.log('Friend invited - lets wait 10seconds');
+                localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raceTO7 = setTimeout(function() {
+                    loop();
+                }, 2500);
+            } else if ($('#game_container:contains("Please fill in the names")').length) {
+                console.log('Inviting: ' + race_friend + ' for race');
+                $('input[type=text]').val(race_friend);
+                raceTO5 = setTimeout(function() {
+                    $('input[type=submit]:eq(0)').focus().click();
+                    localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 10));
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 1000);
+            } else if ($('#game_container:contains("Accepted")').length) {
+                console.log('Accepted lets go');
+                $('input[type="submit"]').focus().click();
+                raceTO8 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2000);
+            } else if ($('#game_container:contains("All racers are ready for the race")').length) {
+                console.log('Race done - Lets get info');
+                $('input[type=submit]:eq(0)').focus().click();
+                raceTO9 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2000);
+            } else if ($('#game_container:contains("still tired from your last race")').length) {
+                console.log('Race done - Lets get info');
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raceTO10 = setTimeout(function() {
+                    loop();
+                }, 2000);
+            } else if ($('#game_container:contains("ready for the race")').length) {
+                localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 30));
+                console.log('Ready for race - Dont need to check much - 30 sec');
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raceTO11 = setTimeout(function() {
+                    loop();
+                }, 2500);
+            } else {
+                localStorage.setItem("raceWaitTime", (Math.round(new Date().getTime() / 1000) + 10));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raceTO12 = setTimeout(function() {
+                    console.log('Race Page : Nothing / 10 Seconds time out');
+                    loop();
+                }, 2000);
+            }
+        }, 2500);
+    }
+}
+
+function doHeist() {
+    unsafeWindow.omerta.GUI.container.loadPage('/?module=Heist&action=');
+    if (deCaptcha() === false) {
+        console.log('Heist page');
+        heistTO1 = setTimeout(function() {
+            if ($('#game_container:contains(' + clickLimit + ')').length) { // CLICKS WAIT 10 SECS AND RELOAD DIV
+                console.log("Clicks - 10secs tentar de novo");
+                loopTO1 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage('/?module=Heist&action=');
+                    loop();
+                }, 10000);
+            } else if ($('#game_container:contains(' + heistDesperate + ')').length && heists_friend !== "") { // Do Heist with Friend!
+                heistTO2 = setTimeout(function() {
+                    console.log("Inviting " + heists_friend + " to Heist!");
+                    $('input[name=driver]').val(heists_friend);
+                    heistInviteTO = setTimeout(function() {
+                        $('input[type=submit]:eq(0)').focus().click();
+                        heistInviteTO2 = setTimeout(function() {
+                            if ($('#game_container:contains(' + heistBuddyHot + ')').length) // partner HOT try again in 30secs
+                            {
+                                console.log("Partner is hot for heist !");
+                                localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 60));
+                                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                heistTO6 = setTimeout(loop, 2000);
+                            } else {
+                                loop();
+                            }
+                        }, 2000);
+                    }, 1500);
+                }, 3000);
+            } else if ($('#game_container:contains(' + heistInvSent + ')').length || $('#game_container:contains(' + heistInvSent2 + ')').length) {
+                console.log('Heist not accepted yet - wait 10seconds');
+                localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 10));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                heistTO3 = setTimeout(loop, 2000);
+            } else if ($('#game_container:contains(' + heistBuddyHot + ')').length) // partner HOT try again in 30secs
+            {
+                console.log("Partner is hot for heist !");
+                localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 60));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                heistTO6 = setTimeout(loop, 2000);
+            } else if ($('#game_container:contains(' + heistDesperate + ')').length && heists_chat === true) { // Do Heist on Chat!
+                if (parseInt(localStorage.getItem("heistChatMsg")) + (60 * 1) < Math.round(new Date().getTime() / 1000)) {
+                    if ($('#omerta_sidepanel_toggle').attr('class') == 'open') {
+                        omerta_sidepanel_toggle.click();
+                    }
+                    console.log('asking for heist in chat');
+                    $.post(getUrl() + "?module=Chat&action=send", {
+                        room: "omerta.general",
+                        message: heist_msg
+                    });
+                    localStorage.setItem("heistChatMsg", Math.round(new Date().getTime() / 1000)); // Set time of last Message
+                    localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                } else {
+                    console.log("Heist Message sent less than 1minute ago!");
+                    localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                }
+                heistTO4 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2500);
+            } else if ($('#game_container:contains(' + heistWaitLeader + ')').length) {
+                console.log('Accepted heist - Waiting for leader - Checking if done in 1min');
+                localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 60));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                heistTO5 = setTimeout(loop, 3000);
+            } else if ($('#game_container:contains(' + heistHot + ')').length) {
+                console.log('Heist done - Lets get info');
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                heistTO6 = setTimeout(loop, 2000);
+            } else if ($('#game_container:contains(' + heistPutCar + ')').length) { // NEED TO PUT CAR
+                console.log('Accepted heist - Gotta put car');
+                heistTO7 = setTimeout(function() {
+                    $('input[type=submit]').focus().click();
+                    heistTO8 = setTimeout(function() {
+                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                        loop();
+                    }, 4000);
+                }, 2000);
+            } else if ($('#game_container:contains(' + heistPartnerIn + ')').length) { // Partner accepted heist. GOGO !
+                console.log('Partner accepted heist! ');
+                heistT13 = setTimeout(function() {
+                    console.log('Heist GO!');
+                    $('input[type=submit]').focus().click();
+                    heistTO15 = setTimeout(function() {
+                        console.log('Sending heist money!');
+                        $('input[type=submit]').focus().click();
+                    }, 2000);
+                    heistTO14 = setTimeout(function() {
+                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                        loop();
+                    }, 5000);
+                }, 2000);
+            } else if (heists_friend === "" && heists_chat === false) { //Only waiting for invites
+                heistTO9 = setTimeout(function() {
+                    if ($('#game_container:contains(' + heistInvited + ')').length) { // Got invite
+                        console.log('Got invite');
+                        $('a:contains(' + heistAccept + ')')[0].click();
+                        heistTO10 = setTimeout(function() {
+                            $('input[type=submit]').focus().click();
+                            localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 15));
+                            heistTO16 = setTimeout(function() {
+                                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                loop();
+                            }, 2000);
+                        }, 1500);
+                    } else if ($('#game_container:contains(' + heistDesperate + ')').length) { // dont have invite - waiting 30seconds
+                        console.log('Dont have invite - Checking again in 15 seconds');
+                        localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 15));
+                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                        heistTO11 = setTimeout(loop, 3000);
+                    } else {
+                        console.log('Waiting for Heist invite but did shit!');
+                        localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 15));
+                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                        heistTO13 = setTimeout(loop, 3000);
+                    }
+                }, 3000);
+            } else {
+                localStorage.setItem("heistWaitTime", (Math.round(new Date().getTime() / 1000) + 15));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                console.log('Heist Page : Nothing / 15 Seconds time out');
+                heistTO12 = setTimeout(loop, 2000);
+            }
+        }, 2500);
+    }
+}
+
+function doRaid() {
+    unsafeWindow.omerta.GUI.container.loadPage('/?module=Spots&action=');
+    if (deCaptcha() === false) {
+        var raidID;
+        console.log('Raid page');
+        raidTO1 = setTimeout(function() {
+            if ($('#game_container:contains(' + clickLimit + ')').length) { // CLICKS WAIT 10 SECS AND RELOAD DIV
+                console.log("Clicks - 10secs tentar de novo");
+                loopTO1 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage('/?module=Spots&action=');
+                    loop();
+                }, 10000);
+            } else if ($('#game_container:contains(' + raidStart + ')').length && raids_friend !== "") { // Do Raid with Friend!
+                raidTO2 = setTimeout(function() {
+                    $('table.thinline:eq(1) button').each(function() {
+                        if ($(this).text() === "Go" && !$(this).is(":disabled")) {
+                            raidID = $(this).attr('data-raidid');
+                            console.log(raidID);
+                            return false;
+                        }
+                    });
+                    console.log("Inviting " + raids_friend + " to Raid on Spot " + raidID + " !");
+                    $.post(getUrl() + "?module=Spots&action=start_raid", {
+                        spotId: raidID,
+                        bullets: "0",
+                        driver: raids_friend
+                    });
+                    doRaid();
+                }, 3000);
+            } else if ($('#game_container:contains(' + raidStart + ')').length && raids_chat === true) { // Do Raid on Chat!
+                if (parseInt(localStorage.getItem("raidChatMsg")) + (60 * 1) < Math.round(new Date().getTime() / 1000)) {
+                    if ($('#omerta_sidepanel_toggle').attr('class') == 'open') {
+                        omerta_sidepanel_toggle.click();
+                        console.log('chat open');
+                    }
+                    console.log('asking for raid in chat');
+                    $.post(getUrl() + "?module=Chat&action=send", {
+                        room: "omerta.general",
+                        message: raids_msg
+                    });
+                    localStorage.setItem("raidChatMsg", Math.round(new Date().getTime() / 1000)); // Set time of last Message
+                    localStorage.setItem("raidWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                } else {
+                    console.log("Raid Message sent less than 1minute ago!");
+                    localStorage.setItem("raidWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                }
+                heistTO4 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2500);
+            } else if ($('#game_container:contains(' + raidStart + ')').length && raids_friend === "" && raids_chat === false) { // Waiting for friend to invite !
+                console.log("Partner didnt invite yet - wait 15 seconds!");
+                localStorage.setItem("raidWaitTime", (Math.round(new Date().getTime() / 1000) + 15));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raidTO03 = setTimeout(loop, 2000);
+            } else if ($('#game_container:contains(' + raidWaitCar + ')').length) // Waiting to put car before go !
+            {
+                console.log("Partner didnt put car for raid yet !");
+                localStorage.setItem("raidWaitTime", (Math.round(new Date().getTime() / 1000) + 10));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raidTO03 = setTimeout(loop, 2000);
+            } else if ($('#game_container:contains(' + raidDriverReady + ')').length) // GOGOGO!
+            {
+                console.log("Go Raid !");
+                raidTO04 = setTimeout(function() {
+                    $('a:contains(' + raidStartUpdate + ')').click();
+                    raidTO041 = setTimeout(function() {
+                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                        raidTO042 = setTimeout(loop, 2000);
+                    }, 2000);
+                }, 2000);
+            } else if ($('#game_container:contains(' + raidAcceptInvite + ')').length) //Need to accept invite
+            {
+                console.log("Have invite for raid lets accept !");
+                raidTO04 = setTimeout(function() {
+                    $('a:contains(' + raidAcceptInvite + ')').click();
+                    raidTO042 = setTimeout(loop, 2000);
+                }, 2000);
+            } else if ($('#game_container:contains(' + raidFailed + ')').length) // Failed - Its done
+            {
+                console.log("Raid done!");
+                raidTO05 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    raidTO051 = setTimeout(loop, 2000);
+                }, 2000);
+            } else if ($('#game_container:contains(' + raidJoined + ')').length) //Accepted waiting start
+            {
+                console.log("Accepted Waiting start");
+                localStorage.setItem("raidWaitTime", (Math.round(new Date().getTime() / 1000) + 25));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raidTO042 = setTimeout(loop, 2000);
+            } else if ($('#game_container:contains(' + raidAccepted + ')').length) //Accepted waiting start
+            {
+                console.log("Accepted Waiting start");
+                localStorage.setItem("raidWaitTime", (Math.round(new Date().getTime() / 1000) + 25));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raidTO042 = setTimeout(loop, 2000);
+            } else if ($('#game_container:contains(' + raidLEM + ')').length) //ERRO NA RAID
+            {
+                console.log("LEM ERROR");
+                localStorage.setItem("raidWaitTime", (Math.round(new Date().getTime() / 1000) + 25));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                raidTO042 = setTimeout(loop, 2000);
+            } else {
+                localStorage.setItem("raidWaitTime", (Math.round(new Date().getTime() / 1000) + 15));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                console.log('Raid Page : Nothing / 15 Seconds time out');
+                raidTO6 = setTimeout(loop, 2000);
+            }
+        }, 2500);
+    }
+}
+
+function doOC() {
+    unsafeWindow.omerta.GUI.container.loadPage('/orgcrime2.php');
+    if (deCaptcha() === false) {
+        console.log('OC page');
+        ocTO1 = setTimeout(function() {
+            if ($('#game_container:contains(' + clickLimit + ')').length) { // CLICKS WAIT 10 SECS AND RELOAD DIV
+                console.log("Clicks - 10secs tentar de novo");
+                ocTO1 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage('/orgcrime2.php');
+                    loop();
+                }, 10000);
+            } else if ($('#game_container:contains(' + ocStart + ')').length && ocs_chat === true) {
+                if (parseInt(localStorage.getItem("ocChatMsg")) + (rnd(120, 240) * 1) < Math.round(new Date().getTime() / 1000)) {
+                    if ($('#omerta_sidepanel_toggle').attr('class') == 'open') {
+                        omerta_sidepanel_toggle.click();
+                    }
+                    console.log('asking for oc in chat');
+                    $.post(getUrl() + "?module=Chat&action=send", {
+                        room: "omerta.general",
+                        message: ocs_msg
+                    });
+                    localStorage.setItem("ocChatMsg", Math.round(new Date().getTime() / 1000)); // Set time of last Message
+                    localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                } else {
+                    console.log("OC Message sent less than 2 minutes ago!");
+                    localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                }
+                ocTO4 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2500);
+            } else if ($('#game_container:contains(' + ocStart + ')').length) {
+                console.log("Still waiting for oc invite!");
+                localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 12));
+                ocTO4 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2500);
+            } else if ($('#game_container:contains(' + ocInvite + ')').length) {
+                console.log("Got invited for oc!");
+                unsafeWindow.omerta.GUI.container.loadPage('/orgcrime2.php?takepart=yes');
+                ocTO5 = setTimeout(function() {
+                    // WE
+                    $('input[name="bulletz"]').val('100');
+                    $('select[name="guns"]').val('2');
+                    // EE
+                    $('input:radio[name="exploz"]').prop('checked', true);
+                    // GO
+                    $('input[type=submit]').focus().click();
+                    localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 10));
+                    ocTO6 = setTimeout(function() {
+                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                        loop();
+                    }, 2000);
+                }, 2000);
+            } else if ($('#game_container:contains(' + ocPutIn + ')').length) {
+                console.log("Already in for oc gotta accept!");
+                ocTO5 = setTimeout(function() {
+                    // WE
+                    $('input[name="bulletz"]').val('100');
+                    $('select[name="guns"]').val('2');
+                    // EE
+                    $('input:radio[name="exploz"]').prop('checked', true);
+                    // GO
+                    $('input[type=submit]').focus().click();
+                    localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 10));
+                    ocTO6 = setTimeout(function() {
+                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                        loop();
+                    }, 2000);
+                }, 2000);
+            } else if ($('#game_container:contains(' + ocReady + ')').length) {
+                console.log("Already in for oc, checking for completion!");
+                localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 25));
+                ocTO6 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 1000);
+            } else if ($('#game_container:contains(' + ocHot + ')').length) {
+                console.log("Oc DONE!");
+                localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 25));
+                ocTO6 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 1000);
+            } else if ($('#game_container:contains(' + ocIn + ')').length) {
+                console.log("Already in for oc, checking for completion 2!");
+                localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 25));
+                ocTO6 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 1000);
+            } else {
+                localStorage.setItem("ocWaitTime", (Math.round(new Date().getTime() / 1000) + 15));
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                console.log('OC PAGE : Nothing / 15 Seconds time out');
+                ocTO6 = setTimeout(loop, 2000);
+            }
+        }, 2500);
+    }
+}
+//-----------WARNERS----------------//
+function warnScOFF() {
+    clearInterval(warn_sc_off_TO);
+    if (warn_sc_off === true) {
+        warn_sc_off_TO = setInterval(function() {
+            console.log("Checking status...");
+            var Enabled = localStorage.getItem('Enabled');
+            if (Enabled !== "true") {
+                notifyCrit("PUTAZITO OFF", "Script is turned off!", "CritOFF", "");
+                playSound();
+            }
+        }, 45000);
+    }
+}
+//------Milestone Checker-----------//
+function mileChecker() {
+    if (deCaptcha() === false) {
+        console.log("Milestones to redeem!");
+        unsafeWindow.omerta.GUI.container.loadPage('/?module=Milestone');
+        mileTO1 = setTimeout(function() {
+            if ($('.box-buttons:contains(' + mileCollect + ')').length) {
+                var mileType = ("Redeeming Milestone of: " + $('.box-buttons:contains(' + mileCollect + ')').parents(".box-inner").find("h2").text() + " !");
+                console.log(mileType);
+                var mile = $('.box-buttons:contains(' + mileCollect + '):eq(0)').children().attr('href');
+                $.post((pageUrl = "https://" + (location.host)) + mile);
+                if (milestone_send_sms === true) {
+                    sendSMS(mileType);
+                }
+                mileTO2 = setTimeout(function() {
+                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                    loop();
+                }, 2500);
+            } else {
+                console.log("No Milestone to redeem!");
+                unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                mileTO3 = setTimeout(loop, 3500);
+            }
+        }, 5000);
+    }
+}
+//----------------------------MENU------------------------------
+function menu() {
+    var STtop = 40;
+    var STleft = 425;
+    if ($('#CritMenu').length === 0) {
+        $('#wrapper').append(
+            $('<div>').addClass('gdlay').attr({
+                id: 'CritMenu'
+            }).css({
+                top: STtop,
+                left: STleft
+            }).append(
+                $('<div>').attr({
+                    id: 'Crithead'
+                }).append(
+                    $('<center>').text('putazit0 v0.9b').css({
+                        fontWeight: 'bold',
+                        fontSize: '15px'
+                    })
+                ).click(function() {
+                    $('#CritMenu').draggable();
+                }),
+                $('<hr>').css({
+                    color: 'gray'
+                }),
+                $('<div>').attr({
+                    id: 'Critdiv'
+                }).append(
+                    $('<div>').attr({
+                        id: 'Critbody'
+                    }).html('Enabled:<font style="float:right;"><b>' + Enabled.toUpperCase() + '</b></font><hr/>Car/Crimes:<font style="float:right;"><b>' + crimes_cars + '</b></font><br />SmartScratch:<font style="float:right;"><b>' + scratch_on_cooldown + '</b></font><br />Scratch Only:<font style="float:right;"><b>' + scratch + '</b></font><br />B/N:<font style="float:right;"><b>' + booze_narcs + '</b></font>'),
+  //                }).html('Enabled:<font style="float:right;"><b>' + Enabled + '</b></font><br />Car/Crimes:<font style="float:right;"><b>' + crimes_cars + '</b></font><br />Booze/Narcs:<font style="float:right;"><b>' + booze_narcs + '</b></font><br />Scratch:<font style="float:right;"><b>' + scratch + '</b></font><br />BustOuts:<font style="float:right;"><b>' + bos),
+                    $('<hr>').css({
+                        color: 'gray'
+                    }),
+                    $('<div>').attr({
+                        id: 'Critconfig'
+                    }).addClass('reset').text('Settings').click(function() {
+                        GM_config.open();
+                    }),
+                    /*$('<div>').attr({
+                        id: 'CritconfigAPI'
+                    }).addClass('reset').text('API CFG').click(function() {
+                        gmAPI.open();
+                    }),        */
+                    $('<div>').attr({
+                        id: 'Crithideshow'
+                    }).addClass('reset').text('Close menu').click(function() {
+                        $("#Critdiv").toggle();
+                        $("#Crithideshow2").toggle();
+                    })
+                ),
+                $('<div>').attr({
+                    id: 'Crithideshow2'
+                }).addClass('reset').text('Open menu').css({
+                    display: "none"
+                }).click(function() {
+                    $("#Crithideshow2").toggle();
+                    $("#Critdiv").toggle();
+                }),
+                $('<div>').attr({
+                    id: 'Critstartstop'
+                }).html(StartButton + ' SCRIPT').addClass('reset ' + StartButton).click(function() {
+                    startStop();
+                })
+
+            )
+        );
+    }
+    $('#CritMenu').mouseup(function() {
+        var divOffset = $('#CritMenu').offset();
+        var left = divOffset.left;
+        var top = divOffset.top;
+        STleft = left;
+        STtop = top;
+    });
+}
+//--------------------------------------------------------------
+//----------------------------MAIN LOOPER-----------------------
+//--------------------------------------------------------------
+
+var css = "@charset 'UTF-8'; .gdlay { z-index:999999; color: #FFFFFF;box-shadow: 2px 2px 2px 2px #1B1B1B;background-image: -moz-linear-gradient(center top, #3F505F, #1B1B1B);background-image: -webkit-linear-gradient(center top ,#3F505F, #1B1B1B);background-image: -o-linear-gradient(top, #ff0000, #1B1B1B);background: linear-gradient(to bottom, #ff0000, #1B1B1B);opacity: 0.90;border-radius: 0px;}.gdlay {position: fixed;width: 110px;border: 0;padding: 3px;} .activeMenuLayout { background-image: -moz-linear-gradient(center top, #115c24, #1B1B1B);background-image: -webkit-linear-gradient(center top ,#115c24, #1B1B1B);background-image: -o-linear-gradient(top, #115c24, #1B1B1B);background: linear-gradient(to bottom, #115c24, #1B1B1B); } .reset { padding:3px; border: 1px solid #ffffff; text-transform:uppercase; border-width:1px !important; border-radius: 0 !important; background: linear-gradient(to bottom, #741010, #050000); color:white; margin-bottom:10px; } .reset:hover { border-color: #000000; cursor: pointer; } .reset.START { font-size: 14px; padding:5px !important; font-weight:bold; background: #115c24; margin-top:2px; border:0; border-radius:3px; margin-bottom:0; } .reset.STOP { font-size: 14px; padding: 5px !important; font-weight:bold; background: #ff0000; margin-top:2px; border:0; border-radius:3px; margin-bottom:0; } .reset { padding: 2px; border-radius: 3px; text-align: center; }";
+$('head').append('<style type="text/css">' + css + '</style>');
+var myip;
+$(document).ready(function() {
+    menuTO = setTimeout(function() {
+        if (version != undefined) {
+            console.log('Menu | Message Checker | Price Checker - launcher');
+            menu();
+            chkMessage();
+            newPrices();
+        }
+    }, 2000);
+});
+$(document).ready(function() {
+    window.loop = function() {
+        if (version != undefined) {
+            if (Enabled === "true") {
+                if (deCaptcha() === false) {
+                    if (gotClicks()) { // CLICKS WAIT 10 SECS AND RELOAD DIV
+                    } else if ($('body:contains(' + mileToRedeem + ')').length && milestone_check === true) { //Have Milestones!
+                        loopMILE01 = setTimeout(mileChecker, rnd(1500, 2500));
+                    } else if ((on_page('/jail.php') || on_page('jail.php')) && (bos === true || bo_on_cooldown === true)) { // For busting !
+                        console.log('Jail page');
+                        if ($('#game_container:contains(' + jailGo + ')').length) {
+                            if ($('tr[bgcolor]').length >= 1) {
+                                loopTO2 = setTimeout(function() {
+                                    bobos();
+                                    loop();
+                                }, rnd(300, 675));
+                            } else {
+                                console.log('Prisao vazia, timeout de ' + bo_cooldown_time + 's');
+                                loopTO3 = setTimeout(function() {
+                                    unsafeWindow.omerta.GUI.container.loadPage('/jail.php');
+                                    loop();
+                                }, (bo_cooldown_time * 1000));
+                            }
+                        } else {
+                            loopTO4 = setTimeout(function() {
+                                bobos();
+                                loop();
+                            }, rnd(300, 675));
+                        }
+                    } else if (inJail() === true) { // IF we get here means no busting !
+                        console.log('Loop - In Jail');
+                        loopTO5 = setTimeout(loop, 5000);
+                    } else if (on_page('/?module=Heist&action=') || on_page('?module=Heist&action=')) { // HEIST PAGE
+                        console.log('Heist page - 7sec CD');
+                        loopTO6 = setTimeout(doHeist, rnd(5000, 10000));
+                    } else if (on_page('?module=Spots&action=')) { // RAID PAGE
+                        console.log('Raid page - 7sec CD');
+                        loopTO7 = setTimeout(doRaid, rnd(5000, 10000));
+                    } else if (on_page('/?module=Crimes')) {
+                        console.log('Crime page - loop');
+                        if (crimes_cars === true) {
+                            loopTO8 = setTimeout(function() {
+                                if ($('#game_container:contains(' + ccSucc + ')').length) {
+                                    console.log('Crime success!');
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                } else if ($('#game_container:contains(' + ccFail + ')').length) {
+                                    console.log('Crime Failed!');
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                } else if ($('#game_container:contains(' + ccDone + ')').length) {
+                                    console.log('Crime already Done!');
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                } else if (on_page('/?module=Crimes')) {
+                                    console.log('Trying to do a crime');
+                                    crimeAtpt();
+                                } else {
+                                    console.log('Loop timeout');
+                                    loopTO9 = setTimeout(function() {
+                                        loop();
+                                    }, 2000);
+                                }
+                            }, rnd(500,1000));
+                        }
+                    } else if (on_page('/?module=Cars')) {
+                        console.log('Car page - loop');
+                        if (crimes_cars === true) {
+                            loopTO8 = setTimeout(function() {
+                                if ($('#game_container:contains(' + ccSucc + ')').length) {
+                                    var profit = $('#game_container').text().trim();
+                                    if (profit.match(/\$ ([,\d]+)/) !== null) {
+                                        var popoplim = parseInt(profit.match(/\$ ([,\d]+)/)[1].replace(',', ''), 10);
+                                    }
+                                    console.log('Car Nick with success ! Car Value: ' + popoplim + "$");
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                } else if ($('#game_container:contains(' + ccFail + ')').length) {
+                                    console.log('Car Nick Failed!');
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                } else if ($('#game_container:contains(' + ccDone + ')').length) {
+                                    console.log('Car Nick Already Done!');
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    loop();
+                                } else if (on_page('/?module=Cars')) {
+                                    carN();
+                                } else {
+                                    loopTO9 = setTimeout(function() {
+                                        loop();
+                                    }, 2000);
+                                }
+                            }, rnd(500,1000));
+                        }
+                    } else if (on_page('/races.php') || on_page('/races.php') || on_page('/#races.php') || on_page('#races.php')) {
+                        doRace();
+                    } else if (on_page('/scratch.php') || on_page('scratch.php')) {
+                        if (scratch === true || scratch_on_cooldown === true) {
+                            var pocketMoney = omerta.services.account.data.money;
+                            if (pocketMoney < min_sc) // We are out of money
+                            {
+                                console.log("Not enough money to scratch.");
+                                GM_config.set('scratch', false);
+                                GM_config.set('scratch_on_cooldown', false);
+                                onSave();
+                                if (send_message_scratch === true) {
+                                    sendSMS('Scratch - Out of Money');
+                                }
+                                if (crimes_cars === true || booze_narcs != 'Disabled' || do_races === true || do_heists === true || do_raids === true) {
+                                    console.log("Have other actions to do - Go back to info!");
+                                    unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                    scratchSMS = setTimeout(loop, 1000);
+                                } else {
+                                    console.log("Doing nothing else - Logout!");
+                                    logout();
+                                }
+                            } else if ($('#game_container:contains(' + scratch10min + ')').length) {
+                                console.log('Maximum amount of scratches per minute, waiting a while');
+                                if (scratch_on_cooldown === true) {
+
+                                    const randPages = [infoPage, '/scratch.php', '/?module=City', '/?module=Statistics&action=global_stats', '/obay.php', '/gambling/gambling.php', '/bullets2.php', '?module=Mail', '?module=Shop&action=display_section&id=0', '/forums/index.php', '?module=Hitlist&action=list', '/?module=Lackeys', '/user.php'];
+
+                                    const randomPage = Math.floor(Math.random() * randPages.length);
+
+                                    var coin1 = Math.floor(Math.random() * 2) +1;
+                                    var coin2 = Math.floor(Math.random() * 2) +1;
+                                    if(coin1 === coin2){
+                                        scratch10 = setTimeout(function() {
+                                            unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                            loopTIMER = setTimeout(loop(),rnd(15000, 20000));
+                                        }, rnd(2000, 5000));
+
+                                    } else {
+                                        scratchMAX = setTimeout(function () {
+                                            unsafeWindow.omerta.GUI.container.loadPage(randPages[randomPage]);
+                                        }, rnd(2000, 5500));
+                                        scratch10 = setTimeout(function() {
+                                            unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                                            loop();
+                                        }, rnd(20000, 30000));
+                                    }
+                                } else if (scratch === true) {
+                                    scratch10 = setTimeout(function() {
+                                        unsafeWindow.omerta.GUI.container.loadPage('/scratch.php');
+                                        loop();
+                                    }, rnd(10000, 15000));
+                                }
+
+                            } else {
+                                scratchGo = setTimeout(function() {
+                                    pressSCRT();
+                                    loop();
+                                }, rnd(100, 200));
+                            }
+                        }
+                    } else if (on_page('/smuggling.php') || on_page('smuggling.php')) {
+                        if (booze_narcs == 'RP') {
+                            loopTO10 = setTimeout(bnRP, rnd(2000, 3000));
+                        } else if (booze_narcs == 'Money') {
+                            loopTO10 = setTimeout(BoozeNarcRun, rnd(1000, 2000));
+                        } else if (booze_narcs == 'BOOST') {
+                            loopTO10 = setTimeout(bnBOOST, rnd(2000, 3000));
+                        }
+                    } else if (on_page('/orgcrime2.php')) {
+                        console.log('Doing oc!');
+                        var doingOC = setTimeout(doOC, 2500);
+                    } else if (on_page(infoPage)) {
+                        console.log("Info Page");
+                        var rankGD = omerta.services.account.data.rankname;
+                        var rankNum = 0;
+                        for (var i = 0; i <= 17; i++) {
+                            if (ranks[i] == rankGD) {
+                                rankNum = i;
+                                break;
+                            }
+                        }
+                        console.log("My rank is:" + rankGD + " / " + rankNum + "!");
+                        timerTimeOut = setTimeout(function() {
+                            //-------TIMERS-----------------------------------------------------
+                            if (crimes_cars === true || booze_narcs != 'Disabled' || do_races === true || do_heists === true || do_raids === true) {
+                                var timeWait = 99999999; // DEFAULT
+                                if (crimes_cars === true) {
+                                    var t1 = (parseInt($('.thinline:eq(1)>tbody>tr:eq(1) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                    var t2 = (parseInt($('.thinline:eq(1)>tbody>tr:eq(2) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                    if (isNaN(t1) || t1 < 0) {
+                                        t1 = 0;
+                                    }
+                                    if (isNaN(t2) || t2 < 0) {
+                                        t2 = 0;
+                                    }
+                                    localStorage.setItem('Crime Time', parseInt(t1 / 1000));
+                                    localStorage.setItem('Car Time', parseInt(t2 / 1000));
+                                    timeWait = Math.min(t1, t2);
+                                    console.log('Next Crime in:' + t1 / 1000);
+                                    console.log('Next Car Attempt in:' + t2 / 1000);
+                                }
+                                if (booze_narcs == "Money") {
+                                    if (rankNum == 0) {
+                                        console.log("I'm empty-suit i cant do BN!");
+                                        t4 = 300000;
+                                    } else {
+                                        var t4 = (parseInt($('.thinline:eq(1)>tbody>tr:eq(6) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                    }
+                                    if (isNaN(t4) || t4 < 0) {
+                                        t4 = 0;
+                                        CanTravel = true;
+                                    } else {
+                                        CanTravel = false;
+                                    }
+                                    if (SmuggleDone === false) {
+                                        t4 = 0;
+                                    }
+                                    localStorage.setItem('Booze Narc Time', parseInt(t4 / 1000));
+                                    timeWait = Math.min(timeWait, t4);
+                                    console.log('Next BN Money (Flight) in:' + t4 / 1000);
+                                } else if (booze_narcs == 'RP') {
+                                    if (rankNum == 0) {
+                                        console.log("I'm empty-suit i cant do BN!");
+                                        t4 = 300000;
+                                    } else {
+                                        var booze = (parseInt($('.thinline:eq(1)>tbody>tr:eq(12) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                        var narcs = (parseInt($('.thinline:eq(1)>tbody>tr:eq(13) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                        if (rankNum <= 2) {
+                                            console.log('Im just Delivery Boy/Girl, cant do narcs !');
+                                            var t4 = booze;
+                                        } else {
+                                            var t4 = Math.min(booze, narcs);
+                                        }
+                                    }
+                                    if (isNaN(t4) || t4 < 0) {
+                                        t4 = 0;
+                                    }
+                                    localStorage.setItem('Booze Narc Time', parseInt(t4 / 1000));
+                                    timeWait = Math.min(timeWait, t4);
+                                    console.log('Next BN in:' + t4 / 1000);
+                                } else if (booze_narcs == 'BOOST') {
+                                    var t4 = 3000;
+                                    localStorage.setItem('Booze Narc Time', parseInt(t4 / 1000));
+                                    timeWait = Math.min(timeWait, t4);
+                                    console.log('Doing BN Boost!');
+                                }
+                                if (do_races === true && (omerta.services.account.data.city.name == GC_city || GC_city == 'Any')) {
+                                    if (Math.round(new Date().getTime() / 1000) > localStorage.getItem("raceWaitTime")) {
+                                        var t5 = (parseInt($('.thinline:eq(1)>tbody>tr:eq(9) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                        if (isNaN(t5) || t5 < 0) {
+                                            t5 = 0;
+                                        }
+                                        localStorage.setItem('Race Time', parseInt(t5 / 1000));
+                                        timeWait = Math.min(timeWait, t5);
+                                        console.log('Next Race in:' + t5 / 1000);
+                                    } else {
+                                        var t5 = (parseInt(localStorage.getItem("raceWaitTime"), 10) - Math.round(new Date().getTime() / 1000)) * 1000;
+                                        if (isNaN(t5)) {
+                                            console.log("t5 is NaN");
+                                            t5 = 0;
+                                        }
+                                        localStorage.setItem('Race Time', parseInt(t5 / 1000));
+                                        timeWait = Math.min(timeWait, t5);
+                                        console.log("Race checks on Cooldown for: " + t5 / 1000 + " !");
+                                    }
+                                }
+                                if (do_heists === true && (rankNum > 3) && (omerta.services.account.data.city.name == GC_city || GC_city == 'Any')) {
+                                    if (Math.round(new Date().getTime() / 1000) > localStorage.getItem("heistWaitTime")) {
+                                        var t6 = (parseInt($('.thinline:eq(1)>tbody>tr:eq(3) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                        if (isNaN(t6) || t6 < 0) {
+                                            t6 = 0;
+                                        }
+                                        localStorage.setItem('Heist Time', parseInt(t6 / 1000));
+                                        timeWait = Math.min(timeWait, t6);
+                                        console.log('Next Heist in:' + t6 / 1000);
+                                    } else {
+                                        var t6 = (parseInt(localStorage.getItem("heistWaitTime"), 10) - Math.round(new Date().getTime() / 1000)) * 1000;
+                                        if (isNaN(t6)) {
+                                            console.log("t6 is Nan!");
+                                            t6 = 0;
+                                        }
+                                        localStorage.setItem('Heist Time', parseInt(t6 / 1000));
+                                        timeWait = Math.min(timeWait, t6);
+                                        console.log("Heist checks on Cooldown for: " + t6 / 1000 + " !");
+                                    }
+                                }
+                                if (do_raids === true && (rankNum > 8) && (omerta.services.account.data.city.name == GC_city || GC_city == 'Any')) {
+                                    if (Math.round(new Date().getTime() / 1000) > localStorage.getItem("raidWaitTime")) {
+                                        var t7 = (parseInt($('.thinline:eq(1)>tbody>tr:eq(11) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                        if (isNaN(t7) || t7 < 0) {
+                                            t7 = 0;
+                                        }
+                                        localStorage.setItem('Raid Time', parseInt(t7 / 1000));
+                                        timeWait = Math.min(timeWait, t7);
+                                        console.log('Next Raid in:' + t7 / 1000);
+                                    } else {
+                                        var t7 = (parseInt(localStorage.getItem("raidWaitTime"), 10) - Math.round(new Date().getTime() / 1000)) * 1000;
+                                        if (isNaN(t7)) {
+                                            console.log("t7 is Nan!");
+                                            t7 = 0;
+                                        }
+                                        localStorage.setItem('Raid Time', parseInt(t7 / 1000));
+                                        timeWait = Math.min(timeWait, t7);
+                                        console.log("Raid checks on Cooldown for: " + t7 / 1000 + " !");
+                                    }
+                                }
+                                if (do_ocs === true && (rankNum > 5) && (omerta.services.account.data.city.name == GC_city || GC_city == 'Any')) {
+                                    if (Math.round(new Date().getTime() / 1000) > localStorage.getItem("ocWaitTime")) {
+                                        var t8 = (parseInt($('.thinline:eq(1)>tbody>tr:eq(4) [data-time-end]').attr('data-time-end'), 10) - parseInt(omerta.Clock.getTime(), 10) / 1000) * 1000;
+                                        if (isNaN(t8) || t8 < 0) {
+                                            t8 = 0;
+                                        }
+                                        localStorage.setItem('OC Time', parseInt(t8 / 1000));
+                                        timeWait = Math.min(timeWait, t8);
+                                        console.log('Next OC in:' + t8 / 1000);
+                                    } else {
+                                        var t8 = (parseInt(localStorage.getItem("ocWaitTime"), 10) - Math.round(new Date().getTime() / 1000)) * 1000;
+                                        if (isNaN(t8)) {
+                                            console.log("t8 (oc) is Nan!");
+                                            t8 = 0;
+                                        }
+                                        localStorage.setItem('OC Time', parseInt(t8 / 1000));
+                                        timeWait = Math.min(timeWait, t8);
+                                        console.log("OC checks on Cooldown for: " + t8 / 1000 + " !");
+                                    }
+                                }
+                                timeWait = timeWait + rnd(50, 300);
+                                if (isNaN(timeWait)) {
+                                    console.log('TimeWait is NaN!');
+                                    timeWait = rnd(3000, 7000);
+                                }
+                                localStorage.setItem('TimeWait', parseInt(timeWait / 1000));
+                                console.log('Next action in: ' + timeWait / 1000 + ' seconds');
+                                //------------------------------------------------------------------
+                                clearTimeout(infoTimeOut);
+                                infoTimeOut = setTimeout(function() {
+                                    if (doingCaptcha === false) {
+                                        clearTO(scratch10);
+                                        clearTO(scratchGo);
+                                        clearTO(scratchMAX);
+                                        clearTO(loopScratcher);
+                                        clearTO(loopTIMER);
+                                        unsafeWindow.omerta.GUI.container.loadPage(infoPage)
+                                        //
+                                        if ($('.thinline:eq(1)>tbody>tr:eq(12)>td:eq(1)').text() == "Now" || ($('.thinline:eq(1)>tbody>tr:eq(13)>td:eq(1)').text() == "Now" && rankNum > 2) || $('.thinline:eq(1)>tbody>tr:eq(12)>td:eq(1)').text() == "Nu" || ($('.thinline:eq(1)>tbody>tr:eq(13)>td:eq(1)').text() == "Nu" && rankNum > 2)) {
+                                            var goBN = 1;
+                                        } else {
+                                            var goBN = 0;
+                                        }
+                                        if ($('.thinline:eq(1)>tbody>tr:eq(2)>td:eq(1)').text() == "Now" && crimes_cars === true || $('.thinline:eq(1)>tbody>tr:eq(2)>td:eq(1)').text() == "Nu" && crimes_cars === true) {
+                                            console.log('Car sequence started');
+                                            carN();
+                                        } else if ($('.thinline:eq(1)>tbody>tr:eq(1)>td:eq(1)').text() == "Now" && crimes_cars === true || $('.thinline:eq(1)>tbody>tr:eq(1)>td:eq(1)').text() == "Nu" && crimes_cars === true) {
+                                            console.log('Crime sequence started');
+                                            crimeAtpt();
+                                        } else if (($('.thinline:eq(1)>tbody>tr:eq(6)>td:eq(1)').text() == "Nu" || $('.thinline:eq(1)>tbody>tr:eq(6)>td:eq(1)').text() == "Now" || SmuggleDone === false) && booze_narcs == 'Money' && rankNum > 0) {
+                                            console.log('BN sequence started');
+                                            BoozeNarcRun();
+                                        } else if (booze_narcs == 'RP' && (rankNum > 0) && goBN == 1) {
+                                            console.log('BN RP sequence started');
+                                            bnRP();
+                                        } else if (isNaN(parseInt($('.action-wrapper:eq(12) [data-time-end]').attr('data-time-end'), 10)) && do_races === true && (omerta.services.account.data.city.name == GC_city || GC_city == 'Any')) {
+                                                doRace();
+                                        } else if ($('.thinline:eq(1)>tbody>tr:eq(3)>td:eq(1)').text() == "Nu" && do_heists === true && (rankNum > 3) && (omerta.services.account.data.city.name == GC_city || GC_city == 'Any')) {
+                                            console.log('Heist sequence started');
+                                            doHeist();
+                                        } else if ($('.thinline:eq(1)>tbody>tr:eq(11)>td:eq(1)').text() == "Nu" && do_raids === true && (rankNum > 8) && (omerta.services.account.data.city.name == GC_city || GC_city == 'Any')) {
+                                            console.log('Raid sequence started');
+                                            doRaid();
+                                        } else if ($('.thinline:eq(1)>tbody>tr:eq(4)>td:eq(1)').text() == "Nu" && do_ocs === true && (rankNum > 5) && (omerta.services.account.data.city.name == GC_city || GC_city == 'Any')) {
+                                            console.log('OC sequence started');
+                                            doOC();
+                                        } else if (booze_narcs == 'BOOST') {
+                                            console.log('Boost sequence started');
+                                            unsafeWindow.omerta.GUI.container.loadPage('/smuggling.php');
+                                            bnBOOST();
+                                        } else {
+                                            console.log('Returned to loop');
+                                            loop();
+                                        }
+                                    } else {
+                                        console.log('Setting timeout for loop');
+                                        setTimeout(loop, 5000);
+                                    }
+                                }, timeWait);
+                                if (scratch_on_cooldown === true && timeWait > 50000) {
+                                    console.log('No action for 50 seconds - Go Scratch !');
+                                    loopScratcher = setTimeout(unsafeWindow.omerta.GUI.container.loadPage('/scratch.php'), rnd(13000, 17000));
+                                    loopTO7 = setTimeout(loop, 1000);
+                                } else if (bo_on_cooldown === true && timeWait > 10000) {
+                                    console.log('No action for 10 seconds - Go Bust !');
+                                    unsafeWindow.omerta.GUI.container.loadPage('/jail.php');
+                                    loopTO7 = setTimeout(loop, 1000);
+                                }
+                            } else if (scratch === true) { //Only scratching!
+                                console.log("Only Scratch");
+                                unsafeWindow.omerta.GUI.container.loadPage('/scratch.php');
+                                loopTO7 = setTimeout(loop, 2500);
+                            } else if (bos === true) // Only Bo's
+                            {
+                                console.log('Only BustOut');
+                                unsafeWindow.omerta.GUI.container.loadPage('/jail.php');
+                                loopTO7 = setTimeout(loop, 2500);
+                            } else {
+                                console.log('Nothing to check for!');
+                                stop();
+                            }
+                        }, 1500);
+                    } else {
+                        console.log("Bad page :(");
+                        unsafeWindow.omerta.GUI.container.loadPage(infoPage);
+                        loopTO11 = setTimeout(loop, 5000);
+                    }
+                }
+            }
+        }
+    };
+    loop();
+});
